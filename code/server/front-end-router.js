@@ -51,5 +51,42 @@ router.get("/a-propos(.html)?", routeName("about"), async (_req, res) => {
         list_saes: result.data,
     });
 });
+// Nouvelle routes 
+
+router.get("/lieux(.html)?", routeName("places"), async (req, res) => {
+    // Logique pour récupérer les lieux de vie
+    const options = {
+      method: "GET",
+      url: `${res.locals.base_url}/api/places?is_active=true`,
+    };
+    let result = {};
+    try {
+      result = await axios(options);
+    } catch (_error) {}
+  
+    res.render("pages/front-end/places.njk", {
+      list_places: result.data,
+    });
+  });
+  
+  router.get("/sur-les-medias(.html)?", routeName("media"), async (req, res) => {
+    // Logique pour récupérer les médias
+    const options = {
+      method: "GET",
+      url: `${res.locals.base_url}/api/media?is_active=true`,
+    };
+    let result = {};
+    try {
+      result = await axios(options);
+    } catch (_error) {}
+  
+    res.render("pages/front-end/media.njk", {
+      list_media: result.data,
+    });
+  });
+  
+  router.get("/contact(.html)?", routeName("contact"), async (req, res) => {
+    res.render("pages/front-end/contact.njk");
+  });
 
 export default router;
