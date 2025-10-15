@@ -1,0 +1,19 @@
+{% extends "layouts/front-end/layout.njk" %}
+
+{% block title %}404 - Page introuvable{% endblock %}
+
+{% block content %}
+<section class="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white relative">
+  <h1 class="text-3xl md:text-4xl font-bold mb-4">Oups ! La page n'existe pas... 😅</h1>
+  <p class="mb-6 text-lg text-gray-300">Mais tu peux te détendre avec un petit casse-brique 🎮</p>
+
+  <canvas id="breakout" width="800" height="600" class="rounded-2xl shadow-lg bg-slate-800 border border-slate-700"></canvas>
+
+  <a href="/" class="mt-6 text-teal-400 underline hover:text-teal-300 transition">
+    Retour à l'accueil
+  </a>
+
+  <script type="module" src="/scripts/brickgame.js"></script>
+</section>
+{% endblock %}
+
