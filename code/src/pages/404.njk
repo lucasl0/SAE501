@@ -1,8 +1,14 @@
-{% extends "layouts/front-end/layout.njk" %}
+{% extends "layouts/front-end/base.njk" %}
+
+{% set bubble_color = "noir" %}
 
 {% block title %}404 - Page introuvable{% endblock %}
 
-{% block content %}
+{% block head_tags %}
+    <meta name="description" content="Page introuvable - Profitez d'un jeu de casse-briques pour patienter">
+{% endblock %}
+
+{% block main %}
 <section class="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white relative">
   <h1 class="text-3xl md:text-4xl font-bold mb-4">Oups ! La page n'existe pas... 😅</h1>
   <p class="mb-6 text-lg text-gray-300">Mais tu peux te détendre avec un petit casse-brique 🎮</p>
@@ -13,7 +19,18 @@
     Retour à l'accueil
   </a>
 
-  <script type="module" src="/scripts/brickgame.js"></script>
+  <script type="module" src="./scripts/brickgame.js"></script>
 </section>
-{% endblock %}
 
+<style>
+    /* Cache la navigation et le hero pour la page 404 */
+    nav, .hero {
+        display: none !important;
+    }
+    
+    /* Assure que le fond soit sombre */
+    body {
+        background-color: #0f172a !important;
+    }
+</style>
+{% endblock %}
