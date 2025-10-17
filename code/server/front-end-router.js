@@ -51,7 +51,6 @@ router.get("/a-propos(.html)?", routeName("about"), async (_req, res) => {
         list_saes: result.data,
     });
 });
-// Nouvelle routes 
 
 
 export default router;
