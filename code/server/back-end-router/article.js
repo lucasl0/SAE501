@@ -10,27 +10,29 @@ import upload from "#server/uploader.js";
 const base = "articles";
 const router = express.Router();
 
-// Get multiple articles
+
+// ⭐ ADDED : LIST ROUTE (/admin/articles)
 router.get(`/${base}`, async (req, res) => {
-    const queryParams = querystring.stringify(req.query);
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/${ressourceNameInApi.articles}?${queryParams}`,
-    };
-    let result = {};
     let listErrors = [];
+    let articles = [];
 
     try {
-        result = await axios(options);
+        const result = await axios({
+            method: "GET",
+            url: `${res.locals.base_url}/api/${ressourceNameInApi.articles}`,
+        });
+
+        articles = result.data.data;
     } catch (error) {
-        listErrors = error.response.data.errors;
+        listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
 
     res.render("pages/back-end/articles/list.njk", {
-        list_articles: result.data,
+        articles,
         list_errors: listErrors,
     });
 });
+
 
 // Get or create article
 router.get([`/${base}/:id`, `/${base}/add`], async (req, res) => {
@@ -51,7 +53,7 @@ router.get([`/${base}/:id`, `/${base}/add`], async (req, res) => {
         listErrors = error.response.data.errors;
     }
 
-    res.render("", {
+    res.render("pages/back-end/articles/add-edit.njk", {
         article: result?.data || {},
         list_errors: listErrors,
         is_edit: isEdit,
@@ -68,9 +70,7 @@ router.post([`/${base}/:id`, `/${base}/add`], upload.single("image"), async (req
     let listAuthors = [];
 
     let options = {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
         data: {
             ...req.body,
             file: req.file,
@@ -105,7 +105,7 @@ router.post([`/${base}/:id`, `/${base}/add`], upload.single("image"), async (req
         ressource = e.response.data.ressource || {};
     } finally {
         if (listErrors.length || isEdit) {
-            res.render("", {
+            res.render("pages/back-end/articles/add-edit.njk", {
                 article: ressource,
                 list_errors: listErrors,
                 list_authors: listAuthors,
