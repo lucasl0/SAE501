@@ -52,6 +52,55 @@ router.get("/a-propos(.html)?", routeName("about"), async (_req, res) => {
     });
 });
 
+router.get("/lieux(.html)?", routeName("lieux"), async (_req, res) => {
+    const options = {
+        method: "GET",
+        url: `${res.locals.base_url}/api/saes?per_page=9`,
+    };
+
+    let result = {};
+    try {
+        result = await axios(options);
+    } catch (_error) {}
+
+    res.render("pages/front-end/lieux.nunjucks", {
+        list_saes: result.data,
+    });
+});
+
+router.get("/sur-les-medias.(html)?", routeName("sur-les-medias"), async (_req, res) => {
+    const options = {
+        method: "GET",
+        url: `${res.locals.base_url}/api/saes?per_page=9`,
+    };
+
+    let result = {};
+    try {
+        result = await axios(options);
+    } catch (_error) {}
+
+    res.render("pages/front-end/sur-les-medias.nunjucks", {
+        list_saes: result.data,
+    });
+});
+
+router.get("/contact.(html)?", routeName("contact"), async (_req, res) => {
+    const options = {
+        method: "GET",
+        url: `${res.locals.base_url}/api/saes?per_page=9`,
+    };
+
+    let result = {};
+    try {
+        result = await axios(options);
+    } catch (_error) {}
+
+    res.render("pages/front-end/contact.nunjucks", {
+        list_saes: result.data,
+    });
+});
+
+
 
 
 
