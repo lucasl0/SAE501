@@ -1,5 +1,8 @@
 {% extends "layouts/front-end/base.njk" %}
 
+{# --- CHANGEMENT DE COULEUR ICI --- #}
+{% block bubble_color %}bleu{% endblock %}
+
 {% block title %}Lieux de vie{% endblock %}
 
 {% block main %}

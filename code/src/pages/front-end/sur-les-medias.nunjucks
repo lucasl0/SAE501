@@ -1,5 +1,8 @@
 {% extends "layouts/front-end/base.njk" %}
 
+{# --- CHANGEMENT DE COULEUR ICI --- #}
+{% block bubble_color %}rouge{% endblock %}
+
 {% block title %}Sur les médias{% endblock %}
 
 {# --- CORRECTION ICI : Changement des URL pour utiliser youtube-nocookie.com --- #}

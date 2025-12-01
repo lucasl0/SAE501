@@ -1,5 +1,8 @@
 {% extends "layouts/front-end/base.njk" %}
 
+{# --- CHANGEMENT DE COULEUR ICI --- #}
+{% block bubble_color %}jaune{% endblock %}
+
 {% block title %}Contactez-nous{% endblock %}
 
 {% block main %}

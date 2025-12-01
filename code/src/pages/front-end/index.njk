@@ -1,11 +1,14 @@
 {% extends "layouts/front-end/base.njk" %}
 
+{# --- CHANGEMENT DE COULEUR ICI --- #}
+{% block bubble_color %}rose{% endblock %}
+
 {% block main %}
     <section class="grid grid-cols-1 lg:grid-cols-[1fr_24rem] gap-x-6 gap-y-4 mb-6">
         <h1 class="text-3xl font-bold lg:col-span-2 mt-6 lg:mt-0">Articles sur le BUT MMI</h1>
         <ul class="flex md:flex-row sm:landscape:flex-col flex-col lg:flex-col gap-6">
             <li>
-                <a class="flex flex-col sm:max-lg:landscape:flex-row w-full shadow-sm hocus:shadow-xl transition-shadow rounded-lg overflow-hidden" href="">
+                <a class="flex flex-col sm:max-lg:landscape:flex-row w-full shadow-sm hocus:shadow-xl transition-shadow rounded-lg overflow-hidden" href="./back-end/articles/article.nunjucks">
                     <div class="aspect-25/14 overflow-hidden">
                         <img class="object-cover h-full w-full" src="/images/image-placeholder-article.png" alt="">
                     </div>

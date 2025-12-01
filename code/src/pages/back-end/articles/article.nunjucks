@@ -1,0 +1,91 @@
+{% extends "layouts/front-end/base.njk" %}
+
+{# --- COULEUR DE LA BULLE --- #}
+{% block bubble_color %}blue{% endblock %}
+
+{# --- DONNÉES SIMULÉES (Pour l'exemple) --- #}
+{# Dans un vrai projet, ces données viendraient de la base de données via l'URL #}
+{% set article = {
+    title: "Retour sur la Journée Portes Ouvertes 2023",
+    chapo: "Un succès retentissant pour cette nouvelle édition qui a accueilli plus de 500 lycéens curieux de découvrir le BUT MMI.",
+    content: "La journée a commencé sous un soleil radieux. Les étudiants de deuxième année avaient préparé des ateliers interactifs démontrant leurs compétences en développement web, design graphique et communication numérique. <br><br> Les visiteurs ont particulièrement apprécié la démonstration du studio TV et les projets de réalité augmentée. Les retours sont unanimes : l'ambiance était au rendez-vous et l'organisation impeccable. Nous remercions tous les bénévoles.",
+    image: "/images/image-placeholder-article.png",
+    youtube_url: "https://www.youtube-nocookie.com/embed/oiEbQF7qfBU",
+    author: {
+        name: "Helena Despoux",
+        id: "helena-despoux"
+    }
+} %}
+{# Pour tester sans auteur, commentez la partie 'author' ci-dessus #}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block main %}
+    <div class="container mx-auto px-4 max-w-4xl py-10">
+
+        {# Lien de retour #}
+        <a href="/" class="inline-flex items-center text-gray-500 hover:text-blue-600 mb-6 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Retour aux articles
+        </a>
+
+        {# --- EN-TÊTE ARTICLE --- #}
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold mb-6 text-slate-900 leading-tight">
+                {{ article.title }}
+            </h1>
+
+            {# Méta-données : Auteur et Date #}
+            <div class="flex items-center text-sm md:text-base text-gray-600 border-l-4 border-blue-600 pl-4 py-1">
+                <span class="mr-1">Écrit par</span>
+                
+                {# Lien vers la page auteur #}
+                {# Utilisation de default() pour gérer l'absence d'auteur #}
+                <a href="/auteurs/{{ article.author.id | default('redaction') }}" class="font-bold text-slate-900 hover:text-blue-600 hover:underline transition-colors">
+                    {{ article.author.name | default("La Rédaction") }}
+                </a>
+            </div>
+        </header>
+
+        {# --- IMAGE PRINCIPALE --- #}
+        {% if article.image %}
+        <div class="rounded-xl overflow-hidden shadow-lg mb-10 aspect-video">
+            <img src="{{ article.image }}" alt="{{ article.title }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+
+        {# --- CHAPÔ (Introduction) --- #}
+        {% if article.chapo %}
+        <div class="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-relaxed">
+            {{ article.chapo }}
+        </div>
+        {% endif %}
+
+        {# --- CONTENU PRINCIPAL --- #}
+        <div class="prose prose-lg prose-blue max-w-none text-slate-700 leading-relaxed mb-10">
+            {# Le filtre | safe permet d'interpréter le HTML (br, strong) dans le contenu #}
+            {{ article.content | safe }}
+        </div>
+
+        {# --- VIDÉO YOUTUBE (Conditionnel) --- #}
+        {% if article.youtube_url %}
+        <div class="mb-12">
+            <h3 class="text-2xl font-bold mb-4">Vidéo associée</h3>
+            <div class="w-full aspect-video bg-black rounded-xl overflow-hidden shadow-md">
+                <iframe 
+                    class="w-full h-full"
+                    src="{{ article.youtube_url }}" 
+                    title="Vidéo de l'article" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+{% endblock %}
