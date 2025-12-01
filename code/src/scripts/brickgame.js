@@ -22,7 +22,7 @@ let x = canvas.width / 2;
 let y = canvas.height - 50;
 
 // Définir une vitesse de base
-const baseSpeed = 4;
+const baseSpeed = 10;
 
 // Initialisation aléatoire de la direction de la balle
 function getRandomDirection() {

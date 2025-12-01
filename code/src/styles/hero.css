@@ -108,6 +108,9 @@
     &.bleu {
         background-color: #011d37;
     }
+    &.noir {
+        background-color: #000000;
+    }
 }
 
 .bulle-icone-bordure {
