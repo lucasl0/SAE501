@@ -3,6 +3,7 @@ import "/src/styles/hero.css";
 import "/src/styles/index.css";
 import "/src/styles/tailwind.css";
 import "/src/styles/scroll-shadow.css";
+import "/src/scripts/brickgame.js"
 
 import "./store-scroll-position.utils";
 
@@ -17,3 +18,4 @@ const htmlBGColor = window
 document
     .querySelector('meta[name="theme-color"]')
     .setAttribute("content", htmlBGColor);
+    
