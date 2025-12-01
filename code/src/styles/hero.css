@@ -111,6 +111,10 @@
     &.noir {
         background-color: #000000;
     }
+    &.jaune {
+        background-color: #FFE700;
+    }
+
 }
 
 .bulle-icone-bordure {
@@ -156,6 +160,9 @@
     }
 
     &.bleu {
-        background-color: #00a2ff;
+        background-color: #C9C9C9;
+    }
+    &.jaune {
+        background-color: #EE8F00;
     }
 }
