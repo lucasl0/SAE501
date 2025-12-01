@@ -1,32 +1,22 @@
 import express from "express";
 import axios from "axios";
 import mongoose from "mongoose";
-import querystring from "querystring";
-import FormData from "form-data";
-
-import { ressourceNameInApi } from "./utils.js";
 import upload from "#server/uploader.js";
+import { ressourceNameInApi } from "./utils.js";  // Correct relative path
 
 const base = "auteurs";
 const router = express.Router();
 
-/**
- * Get multiple authors
- */
-router.get(`/${base}`, async (req, res) => {
-    const queryParams = querystring.stringify({ per_page: 7, ...req.query });
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/${ressourceNameInApi.authors}?${queryParams}`,
-    };
-
+// LIST AUTHORS
+router.get("/", async (req, res) => {
+    const queryParams = new URLSearchParams({ per_page: 7, ...req.query }).toString();
     let result = {};
     let listErrors = [];
 
     try {
-        result = await axios(options);
+        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}?${queryParams}`);
     } catch (error) {
-        listErrors = error.response?.data?.errors || ["Unknown error"];
+        listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
 
     res.render("pages/back-end/auteurs/list.njk", {
@@ -35,71 +25,71 @@ router.get(`/${base}`, async (req, res) => {
     });
 });
 
-/**
- * Get single author or show add form
- */
-router.get([`/${base}/:id`, `/${base}/add`], async (req, res) => {
+// ADD AUTHOR FORM
+router.get("/add", (req, res) => {
+    res.render("pages/back-end/auteurs/form.njk", {
+        author: {},
+        list_errors: [],
+        is_edit: false,
+    });
+});
+
+// EDIT AUTHOR FORM
+router.get("/:id", async (req, res) => {
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
-    let result = {};
+    let author = {};
     let listErrors = [];
 
     if (isEdit) {
         try {
-            const response = await axios({
-                method: "GET",
-                url: `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`,
-            });
-            result = response.data;
+            const result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`);
+            author = result.data;
         } catch (e) {
-            listErrors = e.response?.data?.errors || ["Unknown error"];
+            listErrors = e.response?.data?.errors || [];
         }
     }
 
     res.render("pages/back-end/auteurs/form.njk", {
-        author: result || {},
+        author,
         list_errors: listErrors,
         is_edit: isEdit,
     });
 });
 
-/**
- * Create or update author
- */
-router.post([`/${base}/:id`, `/${base}/add`], upload.single("image"), async (req, res) => {
+// CREATE OR UPDATE AUTHOR
+router.post(["/add", "/:id"], upload.single("image"), async (req, res) => {
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
-    let listErrors = [];
-    let ressource = null;
-
-    // Prepare FormData for file upload
-    const formData = new FormData();
-    Object.entries(req.body).forEach(([key, value]) => formData.append(key, value));
-    if (req.file) formData.append("image", req.file.buffer, req.file.originalname);
-
-    const options = {
-        method: isEdit ? "PUT" : "POST",
-        url: isEdit
-            ? `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`
-            : `${res.locals.base_url}/api/${ressourceNameInApi.authors}`,
-        headers: formData.getHeaders(),
-        data: formData,
+    let options = {
+        headers: { "Content-Type": "multipart/form-data" },
+        data: { ...req.body, file: req.file },
     };
+    let ressource = {};
+    let listErrors = [];
+
+    if (isEdit) {
+        options.method = "PUT";
+        options.url = `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`;
+    } else {
+        options.method = "POST";
+        options.url = `${res.locals.base_url}/api/${ressourceNameInApi.authors}`;
+    }
 
     try {
         const result = await axios(options);
         ressource = result.data;
     } catch (e) {
-        listErrors = e.response?.data?.errors || ["Unknown error"];
+        listErrors = e.response?.data?.errors || [];
         ressource = e.response?.data?.ressource || {};
-    }
-
-    if (listErrors.length || isEdit) {
-        res.render("pages/back-end/auteurs/form.njk", {
-            author: ressource,
-            list_errors: listErrors,
-            is_edit: isEdit,
-        });
-    } else {
-        res.redirect(`${res.locals.admin_url}/${base}`);
+    } finally {
+        if (listErrors.length || isEdit) {
+            res.render("pages/back-end/auteurs/form.njk", {
+                author: ressource,
+                list_errors: listErrors,
+                is_edit: isEdit,
+            });
+        } else {
+            res.redirect(`${res.locals.admin_url}/${base}`);
+        }
     }
 });
 
