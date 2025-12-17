@@ -1,4 +1,11 @@
-{% set bubble_color = "rouge" %}
+{# 1. On définit le bloc avec une valeur par défaut (ici 'rose') #}
+{# On capture le contenu du bloc dans une variable #}
+{% set bubble_color %}
+    {% block bubble_color %}rose{% endblock %}
+{% endset %}
+
+{# 2. Important : On nettoie les espaces vides avec | trim pour ne pas casser les classes CSS #}
+{% set bubble_color = bubble_color | trim %}
 
 <!DOCTYPE html>
 <html lang="fr" class="bg-neutral-50 text-slate-900">
@@ -9,7 +16,7 @@
         <link rel="icon" href="/images/wrench-screwdiver-favicon.svg" type="image/svg+xml">
 
         <title>
-            {% block title %}TITRE MANQUANT !{% endblock %} - SAÉ 501
+            {% block title %} SAÉ 501 {% endblock %} 
         </title>
 
         <link rel="stylesheet" href="/styles/fonts.css">

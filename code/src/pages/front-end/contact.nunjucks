@@ -1,0 +1,90 @@
+{% extends "layouts/front-end/base.njk" %}
+
+{# --- CHANGEMENT DE COULEUR ICI --- #}
+{% block bubble_color %}jaune{% endblock %}
+
+{% block title %}Contactez-nous{% endblock %}
+
+{% block main %}
+    <div class="container mx-auto px-4 max-w-5xl py-12">
+
+        {# --- SECTION 1 : INTRODUCTION --- #}
+        <div class="mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4 text-black">
+                Plus d'infos sur la formation ?<br>
+                Contactez-nous !
+            </h1>
+            <p class="text-gray-800 leading-relaxed text-base">
+                <span class="font-bold">La formation s'ouvre à tous les bacheliers</span>, pour rappel. Avoir des connaissances en programmation, design ou encore audiovisuel n'est pas obligatoire mais reste un bon atout, car il faut aimer la curiosité dans cette formation pluridisciplinaire. 
+                <span class="font-bold">Il est également possible de faire la formation après une reprise d'études ou une réorientation.</span>
+            </p>
+        </div>
+
+        {# --- SECTION 2 : FORMULAIRE EN LIGNE --- #}
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold mb-8 text-black">Nous contacter en ligne</h2>
+
+            <form action="" method="POST" class="space-y-8">
+                
+                {# Champ Prénom #}
+                <div>
+                    <label for="firstname" class="block font-bold text-black text-lg mb-2">Prénom</label>
+                    <input type="text" id="firstname" name="firstname" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                </div>
+
+                {# Champ Nom de famille #}
+                <div>
+                    <label for="lastname" class="block font-bold text-black text-lg mb-2">Nom de famille</label>
+                    <input type="text" id="lastname" name="lastname" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                </div>
+
+                {# Champ Email #}
+                <div>
+                    <label for="email" class="block font-bold text-black text-lg mb-2">Adresse e-mail</label>
+                    <input type="email" id="email" name="email" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                </div>
+
+                {# Champ Message (Hauteur augmentée pour correspondre à la photo) #}
+                <div>
+                    <label for="message" class="block font-bold text-black text-lg mb-2">Message</label>
+                    {# Utilisation de h-80 pour une très grande hauteur fixe comme sur l'image #}
+                    <textarea id="message" name="message" class="w-full h-80 border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-y transition-shadow"></textarea>
+                </div>
+
+                {# Section "Je suis" #}
+                <div>
+                    <p class="block font-bold text-black text-lg mb-4">Je suis</p>
+                    <div class="flex flex-col sm:flex-row gap-6 flex-wrap items-center sm:items-start">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="status" value="none" class="w-6 h-6 text-blue-600 border-gray-400 focus:ring-blue-600">
+                            <span class="text-gray-800 text-lg">Je ne souhaite pas le préciser</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="status" value="student" class="w-6 h-6 text-blue-600 border-gray-400 focus:ring-blue-600" checked>
+                            <span class="text-gray-800 text-lg">Étudiant / Étudiante</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="status" value="parent" class="w-6 h-6 text-blue-600 border-gray-400 focus:ring-blue-600">
+                            <span class="text-gray-800 text-lg">Parent</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="status" value="other" class="w-6 h-6 text-blue-600 border-gray-400 focus:ring-blue-600">
+                            <span class="text-gray-800 text-lg">Autre</span>
+                        </label>
+                    </div>
+                </div>
+
+                {# Bouton Envoyer #}
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-[#1F54FF] hover:bg-blue-700 text-white font-bold py-4 rounded shadow-sm text-xl uppercase tracking-wide transition-colors">
+                        Envoyer
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+       
+
+    </div>
+{% endblock %}

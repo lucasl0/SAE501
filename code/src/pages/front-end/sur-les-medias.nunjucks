@@ -1,0 +1,65 @@
+{% extends "layouts/front-end/base.njk" %}
+
+{# --- CHANGEMENT DE COULEUR ICI --- #}
+{% block bubble_color %}rouge{% endblock %}
+
+{% block title %}Sur les médias{% endblock %}
+
+{# --- CORRECTION ICI : Changement des URL pour utiliser youtube-nocookie.com --- #}
+{% set video_list = [
+    {
+        title: "La nouvelle réforme : le BUT MMI",
+        url: "https://www.youtube-nocookie.com/embed/oiEbQF7qfBU"
+    },
+    {
+        title: "Pourquoi étudier à l'IUT CYU ?",
+        url: "https://www.youtube-nocookie.com/embed/SyjF4h2Zb7Q"
+    },
+    {
+        title: "Job interview en anglais au département MMI",
+        url: "https://www.youtube-nocookie.com/embed/t72pdxpNjyc"
+    },
+    {
+        title: "L'importance de l'IUT dans les études supérieures",
+        url: "https://www.youtube-nocookie.com/embed/xD4wshE0hEg"
+    }
+] %}
+
+{% block main %}
+    
+    <div class="container mx-auto px-4 max-w-6xl mb-24 mt-12">
+        
+        <div class="mb-10">
+            <h2 class="text-2xl md:text-3xl font-bold text-black max-w-3xl leading-snug">
+                Les actualités et les évènements importants du BUT et de l'IUT CY Paris Université dans les médias
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
+            {% for video in video_list %}
+                <article class="flex flex-col w-full group">
+                    {# Titre au-dessus #}
+                    <h3 class="text-gray-600 text-lg mb-2 font-normal group-hover:text-black transition-colors">
+                        {{ video.title }}
+                    </h3>
+
+                    {# Lecteur Vidéo #}
+                    <div class="w-full aspect-video bg-black shadow-md overflow-hidden rounded-sm">
+                        {# Ajout de referrerpolicy pour éviter d'autres erreurs de sécurité #}
+                        <iframe 
+                            class="w-full h-full"
+                            src="{{ video.url }}" 
+                            title="{{ video.title }}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+    </div>
+
+{% endblock %}
