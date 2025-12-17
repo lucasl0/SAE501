@@ -1,102 +1,88 @@
 import express from "express";
 import axios from "axios";
 import mongoose from "mongoose";
-import querystring from "querystring";
-
-import { ressourceNameInApi } from "./utils.js";
-
 import upload from "#server/uploader.js";
+import { ressourceNameInApi } from "./utils.js";  // Correct relative path
 
 const base = "auteurs";
 const router = express.Router();
 
-// Get multiple authors
-router.get(`/${base}`, async (req, res) => {
-    const queryParams = querystring.stringify({ per_page: 7, ...req.query });
-    let options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/${ressourceNameInApi.authors}?${queryParams}`,
-    };
-
+// LIST AUTHORS
+router.get("/", async (req, res) => {
+    const queryParams = new URLSearchParams({ per_page: 7, ...req.query }).toString();
     let result = {};
     let listErrors = [];
 
     try {
-        result = await axios(options);
+        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}?${queryParams}`);
     } catch (error) {
-        listErrors = error.response.data.errors;
+        listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
 
     res.render("pages/back-end/auteurs/list.njk", {
-        list_authors: result.data,
+        list_authors: result.data || [],
         list_errors: listErrors,
     });
 });
 
-// Get or create author
-router.get([`/${base}/:id`, `/${base}/add`], async (req, res) => {
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`,
-    };
-    const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
+// ADD AUTHOR FORM
+router.get("/add", (req, res) => {
+    res.render("pages/back-end/auteurs/form.njk", {
+        author: {},
+        list_errors: [],
+        is_edit: false,
+    });
+});
 
-    let result = {};
+// EDIT AUTHOR FORM
+router.get("/:id", async (req, res) => {
+    const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
+    let author = {};
     let listErrors = [];
 
     if (isEdit) {
         try {
-            result = await axios(options);
+            const result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`);
+            author = result.data;
         } catch (e) {
-            listErrors = e.response.data.errors;
+            listErrors = e.response?.data?.errors || [];
         }
     }
 
-    res.render("/", {
-        author: result?.data || {},
+    res.render("pages/back-end/auteurs/form.njk", {
+        author,
         list_errors: listErrors,
         is_edit: isEdit,
     });
 });
 
-// Create or update author
-router.post([`/${base}/:id`, `/${base}/add`], upload.single("image"), async (req, res) => {
-    let ressource = null;
+// CREATE OR UPDATE AUTHOR
+router.post(["/add", "/:id"], upload.single("image"), async (req, res) => {
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
-    let listErrors = [];
     let options = {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-        data: {
-            ...req.body,
-            file: req.file,
-        },
+        headers: { "Content-Type": "multipart/form-data" },
+        data: { ...req.body, file: req.file },
     };
+    let ressource = {};
+    let listErrors = [];
 
     if (isEdit) {
-        options = {
-            ...options,
-            method: "PUT",
-            url: `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`,
-        };
+        options.method = "PUT";
+        options.url = `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`;
     } else {
-        options = {
-            ...options,
-            method: "POST",
-            url: `${res.locals.base_url}/api/${ressourceNameInApi.authors}`,
-        };
+        options.method = "POST";
+        options.url = `${res.locals.base_url}/api/${ressourceNameInApi.authors}`;
     }
 
     try {
         const result = await axios(options);
         ressource = result.data;
     } catch (e) {
-        listErrors = e.response.data.errors;
-        ressource = e.response.data.ressource || {};
+        listErrors = e.response?.data?.errors || [];
+        ressource = e.response?.data?.ressource || {};
     } finally {
         if (listErrors.length || isEdit) {
-            res.render("", {
+            res.render("pages/back-end/auteurs/form.njk", {
                 author: ressource,
                 list_errors: listErrors,
                 is_edit: isEdit,

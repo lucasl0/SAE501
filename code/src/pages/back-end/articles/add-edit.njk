@@ -1,0 +1,130 @@
+{% extends "layouts/back-end/base.njk" %}
+
+{% block title %}
+    {% if is_edit %}
+        Éditer "{{ article.title }}"
+    {% else %}
+        Ajouter un article
+    {% endif %}
+{% endblock %}
+
+{% set chars_limit = 2000 %}
+{% set active_menu_item = "articles" %}
+
+{% import "components/back-end/input-file.njk" as input_file with context %}
+
+{% block main %}
+    <div class="bg-white rounded-2xl shadow-md pb-6">
+        <header class="mb-1 p-6">
+            {% include "components/back-end/breadcrumb.njk" %}
+            <h2 class="text-4xl">
+                {% if is_edit %}
+                    Éditer "{{ article.title }}"
+                {% else %}
+                    Ajouter un Article
+                {% endif %}
+            </h2>
+            <p class="text-sm">Les champs avec
+                <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500"></span>
+                sont requis.
+            </p>
+        </header>
+
+        <div class="px-6">
+            {% if list_errors.length %}
+                <div class="alert alert-danger">
+                    <ul>
+                        {% for error in list_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            
+
+            <form action="" method="post" enctype="multipart/form-data">
+                <!-- Titre -->
+                <label class="block mb-4">
+                    <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Titre</span>
+                    <input class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                           type="text" name="title" value="{{ article.title or '' }}" required />
+                </label>
+
+                <!-- Contenu -->
+                <label class="block mb-4">
+                    <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Contenu</span>
+                    <textarea name="content" cols="15" rows="5" maxlength="{{ chars_limit }}"
+                              class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                              aria-describedby="counter_description" required>{{ article.content or '' }}</textarea>
+                    <p class="text-sm" id="counter_description">
+                        {{ chars_limit }} caractères restants
+                    </p>
+                </label>
+
+                <!-- Image  -->
+                <div class="block mb-4">
+                    <label for="image">
+                        <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Image</span>
+                    </label>
+                    {{ input_file.field(article.image, "image", ".jpg, .jpeg, .png, .avif") }}
+                    {% if article.image %}
+                        <div class="mt-2">
+                            <img src="{{ article.image }}" alt="Image actuelle" class="img-thumbnail" width="150">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Lien YouTube (Optionnel) -->
+                <label class="block mb-4">
+                    <span class="font-bold text-slate-700">ID de la vidéo YouTube</span>
+                    <input type="text" name="yt_video_id" 
+                           class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm" 
+                           value="{{ article.yt_video_id or '' }}">
+                </label>
+
+                <!-- Auteur -->
+                <div class="mb-3">
+                    <label for="author" class="form-label">Auteur</label>
+                    <select id="author" name="author" class="form-control" required>
+                        <option value="">Sélectionnez un auteur</option>
+                        {% for author in list_authors %}
+                            <option value="{{ author._id }}" {% if article.author and author._id == article.author._id %}selected{% endif %}>
+                                {{ author.firstname ~ ' ' ~ author.lastname }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            
+                <!-- Slug (affiché mais non modifiable) -->
+                {% if is_edit %}
+                    <label class="block mb-4">
+                        <span class="font-bold text-slate-700">Slug (généré automatiquement)</span>
+                        <input type="text" name="slug"
+                               class="block bg-gray-100 w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm sm:text-sm"
+                               value="{{ article.slug or '' }}" readonly>
+                    </label>
+                {% endif %}
+
+                <!-- Statut actif -->
+                <div class="mb-3 form-check">
+                    <input type="checkbox" id="is_active" name="is_active" class="form-check-input"
+                           {% if article.is_active %}checked{% endif %}>
+                    <label for="is_active" class="form-check-label">Publier l'article</label>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex gap-x-3 gap-y-5 flex-col sm:flex-row">
+                    <button class="px-4 py-2 font-semibold text-sm bg-blue-700 hover:bg-blue-950 text-white rounded-2xl shadow-sm inline-flex gap-1 items-center justify-center"
+                            type="submit">
+                        Sauvegarder
+                    </button>
+                    <button class="px-4 py-2 font-semibold text-sm bg-neutral-100 hover:bg-neutral-200 text-black rounded-2xl shadow-sm"
+                            type="reset">Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
