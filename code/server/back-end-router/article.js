@@ -8,7 +8,7 @@ const base = "articles";
 const router = express.Router();
 
 // LIST ARTICLES
-router.get("/", async (req, res) => {
+router.get(`/${base}`, async (req, res) => {
     let listErrors = [];
     let articles = [];
 
@@ -19,6 +19,8 @@ router.get("/", async (req, res) => {
         listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
 
+    console.log("Tesy")
+
     res.render("pages/back-end/articles/list.njk", {
         articles,
         list_errors: listErrors,
@@ -26,7 +28,7 @@ router.get("/", async (req, res) => {
 });
 
 // ADD ARTICLE FORM
-router.get("/add", async (req, res) => {
+router.get(`/${base}/add`, async (req, res) => {
     let listAuthors = [];
     try {
         const result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}`);
@@ -41,8 +43,13 @@ router.get("/add", async (req, res) => {
     });
 });
 
+
+
 // EDIT ARTICLE FORM
-router.get("/:id", async (req, res) => {
+router.get(`/${base}/:id`, async (req, res, next) => {
+    if(!Number.isInteger(req.params.id)) {
+        return next()
+    }
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
     let article = {};
     let listErrors = [];
@@ -69,7 +76,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // CREATE OR UPDATE ARTICLE
-router.post(["/add", "/:id"], upload.single("image"), async (req, res) => {
+router.post([`/${base}/add`, `/${base}/:id`], upload.single("image"), async (req, res) => {
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
     let options = {
         headers: { "Content-Type": "multipart/form-data" },
