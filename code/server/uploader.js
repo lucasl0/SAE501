@@ -10,9 +10,7 @@ const storage = multer.diskStorage({
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
         cb(
             null,
-            `${file.fieldname}-${uniqueSuffix}${path.extname(
-                file.originalname
-            )}`
+            `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
         );
     },
 });
@@ -21,12 +19,12 @@ const upload = multer({ storage });
 
 export default upload;
 
-const uploadImage = async (image, dist_dir) => {
+export const uploadImage = async (image, dist_dir) => {
     let targetPath = undefined;
     const listErrors = [];
     const error = imageValidator(image);
 
-    if (Object.keys(error) > 0) {
+    if (Object.keys(error).length > 0) {
         listErrors.push(error.message);
     } else {
         if (existsSync(path.normalize(dist_dir))) {
@@ -41,6 +39,7 @@ const uploadImage = async (image, dist_dir) => {
             listErrors.push(`Veuillez créer le dossier "${dist_dir}"`);
         }
     }
+
     return {
         image_path: targetPath,
         errors: listErrors,
@@ -48,7 +47,7 @@ const uploadImage = async (image, dist_dir) => {
     };
 };
 
-const deleteUpload = (path) => {
+export const deleteUpload = (path) => {
     if (!path) return [];
     const listErrors = [];
     fs.unlink(path)
@@ -59,5 +58,3 @@ const deleteUpload = (path) => {
 
     return listErrors;
 };
-
-export { uploadImage, deleteUpload };
