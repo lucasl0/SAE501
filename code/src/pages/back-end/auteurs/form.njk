@@ -32,30 +32,16 @@
         </header>
 
         <div class="px-6">
-            {# erreurs back (API / validation mongoose) #}
             {% for item in list_errors %}
                 <p class="rounded-lg p-3 bg-red-100 text-red-800 border border-red-700 mb-3">{{ item }}</p>
             {% endfor %}
 
-            {% if messages.success %}
-                <p class="rounded-lg p-3 bg-green-100 text-green-800 border border-green-700 mb-3" data-flash-message>
-                    {{ messages.success }}
-                </p>
-            {% endif %}
-
-            {# message front (validation HTML) #}
             <p id="form_error_front" class="hidden rounded-lg p-3 bg-red-100 text-red-800 border border-red-700 mb-3">
                 Merci de vérifier les champs (email valide + champs obligatoires).
             </p>
 
-            <form
-                action=""
-                method="post"
-                enctype="multipart/form-data"
-                data-form
-                {% if is_edit %}data-is-edit="true"{% else %}data-is-edit="false"{% endif %}
-                novalidate
-            >
+            <form action="" method="post" enctype="multipart/form-data" data-form novalidate>
+
                 <div class="grid gap-4 md:grid-cols-2">
                     <label class="block">
                         <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Nom</span>
@@ -87,33 +73,27 @@
                             name="email"
                             value="{{ author.email }}"
                             required
-                            autocomplete="email"
-                            inputmode="email"
                         />
-                        <p class="text-xs text-slate-500 mt-1">Ex : prenom.nom@exemple.com</p>
                     </label>
                 </div>
 
                 <div class="block mb-4 mt-4">
-                    <label for="image">
+                    <label>
                         <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Image</span>
                     </label>
-                    {# IMPORTANT: ton schema Author exige image obligatoire -> on force required côté front #}
+
                     {{ input_file.field(author.image, "image", ".jpg, .jpeg, .png, .avif") }}
-                    <input type="hidden" name="_image_required_hint" value="true">
-                    <p class="text-xs text-slate-500 mt-1">Formats : jpg, jpeg, png, avif</p>
                 </div>
 
                 <label class="block mb-4">
                     <span class="font-bold text-slate-700">Bio</span>
                     <textarea
                         name="bio"
-                        cols="15"
                         rows="5"
                         maxlength="{{ chars_limit }}"
+                        data-maxlength="{{ chars_limit }}"
                         class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-xs focus:outline-hidden focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
                         aria-describedby="bio_counter"
-                        data-maxlength="{{ chars_limit }}"
                     >{{ author.bio }}</textarea>
 
                     <p class="text-sm text-slate-600" id="bio_counter">
@@ -121,30 +101,11 @@
                     </p>
                 </label>
 
-                <label class="block mb-6">
-                    <span class="font-bold text-slate-700">Couleur (optionnel)</span>
-                    <input
-                        class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-xs focus:outline-hidden focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
-                        type="text"
-                        name="color"
-                        value="{{ author.color }}"
-                        placeholder="#ff0000"
-                    />
-                    <p class="text-xs text-slate-500 mt-1">Si invalide, ton backend remettra une couleur par défaut.</p>
-                </label>
-
                 <div class="flex gap-x-3 gap-y-5 flex-col justify-end sm:flex-row">
-                    <button
-                        class="px-4 py-2 font-semibold text-sm bg-blue-700 hocus:bg-blue-950 text-white rounded-2xl shadow-xs inline-flex gap-1 items-center justify-center"
-                        type="submit"
-                    >
+                    <button class="px-4 py-2 font-semibold text-sm bg-blue-700 hocus:bg-blue-950 text-white rounded-2xl shadow-xs" type="submit">
                         Sauvegarder
                     </button>
-
-                    <button
-                        class="px-4 py-2 font-semibold text-sm bg-neutral-100 hocus:bg-neutral-200 text-black rounded-2xl shadow-xs"
-                        type="reset"
-                    >
+                    <button class="px-4 py-2 font-semibold text-sm bg-neutral-100 hocus:bg-neutral-200 text-black rounded-2xl shadow-xs" type="reset">
                         Réinitialiser
                     </button>
                 </div>
@@ -160,57 +121,34 @@
             const bio = document.querySelector('textarea[name="bio"]');
             const counter = document.getElementById("bio_counter");
 
-            // --- Compteur bio ---
             if (bio && counter) {
                 const maxLength = parseInt(bio.dataset.maxlength, 10);
-
                 const updateCounter = () => {
-                    const used = bio.value.length;
-                    const remaining = maxLength - used;
+                    const remaining = maxLength - bio.value.length;
                     counter.textContent = `${remaining} caractères restants`;
                 };
-
                 updateCounter();
                 bio.addEventListener("input", updateCounter);
             }
 
-            // --- Validation simple (HTML5) ---
             if (form) {
-                const markInvalid = (el) => {
-                    el.classList.add("border-red-500");
-                };
-                const unmarkInvalid = (el) => {
-                    el.classList.remove("border-red-500");
-                };
-
                 form.addEventListener("submit", (e) => {
                     if (errorFront) errorFront.classList.add("hidden");
 
-                    const requiredFields = form.querySelectorAll("[required]");
-                    requiredFields.forEach((el) => unmarkInvalid(el));
-
-                    // Validation native
+                    const required = form.querySelectorAll("[required]");
                     let ok = true;
 
-                    requiredFields.forEach((el) => {
+                    required.forEach((el) => {
+                        el.classList.remove("border-red-500");
                         if (!el.checkValidity()) {
                             ok = false;
-                            markInvalid(el);
+                            el.classList.add("border-red-500");
                         }
                     });
 
-                    // Email: checkValidity couvre déjà le format
                     if (!ok) {
                         e.preventDefault();
                         if (errorFront) errorFront.classList.remove("hidden");
-                    }
-                });
-
-                // Quand l'utilisateur retape -> on enlève le rouge
-                form.addEventListener("input", (e) => {
-                    const target = e.target;
-                    if (target && target.classList && target.classList.contains("border-red-500")) {
-                        if (target.checkValidity()) target.classList.remove("border-red-500");
                     }
                 });
             }
