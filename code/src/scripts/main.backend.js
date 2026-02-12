@@ -17,8 +17,35 @@ import "./back-end/tooltip-manager.js";
 import "./back-end/breadcrumb-modal.js";
 import "./back-end/flash-message.js";
 import "/src/scripts/store-scroll-position.utils";
+import { themeManager, TAILWIND_COLORS } from './theme-manager.js';
 
 if (process.env.NODE_ENV === "development") {
     await import("./profiler-bar");
     await import("./vite.error-overlay");
+}
+
+
+// Initialisation immédiate
+function init() {
+    themeManager.init();
+    
+    // Observer l'ajout dynamique du sélecteur
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1 && node.matches?.('[data-theme-selector]')) {
+                    themeManager.initThemeSelector();
+                }
+            });
+        });
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Attendre que le DOM soit prêt
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
 }
