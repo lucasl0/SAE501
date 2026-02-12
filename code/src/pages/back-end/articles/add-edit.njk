@@ -24,15 +24,17 @@
                     Ajouter un Article
                 {% endif %}
             </h2>
-            <p class="text-sm">Les champs avec
+            <p class="text-sm">
+                Les champs avec
                 <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500"></span>
                 sont requis.
             </p>
         </header>
 
         <div class="px-6">
+
             {% if list_errors.length %}
-                <div class="alert alert-danger">
+                <div class="rounded-lg p-3 bg-red-100 text-red-800 border border-red-600 mb-3">
                     <ul>
                         {% for error in list_errors %}
                             <li>{{ error }}</li>
@@ -41,90 +43,195 @@
                 </div>
             {% endif %}
 
-            
+            <form
+                action=""
+                method="post"
+                enctype="multipart/form-data"
+                data-form
+                data-is-edit="{% if is_edit %}true{% else %}false{% endif %}"
+            >
 
-            <form action="" method="post" enctype="multipart/form-data">
                 <!-- Titre -->
                 <label class="block mb-4">
-                    <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Titre</span>
-                    <input class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
-                           type="text" name="title" value="{{ article.title or '' }}" required />
+                    <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">
+                        Titre
+                    </span>
+                    <input
+                        type="text"
+                        name="title"
+                        value="{{ article.title or '' }}"
+                        required
+                        class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                    />
                 </label>
 
                 <!-- Contenu -->
                 <label class="block mb-4">
-                    <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Contenu</span>
-                    <textarea name="content" cols="15" rows="5" maxlength="{{ chars_limit }}"
-                              class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
-                              aria-describedby="counter_description" required>{{ article.content or '' }}</textarea>
+                    <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">
+                        Contenu
+                    </span>
+                    <textarea
+                        name="content"
+                        rows="6"
+                        maxlength="{{ chars_limit }}"
+                        data-maxlength="{{ chars_limit }}"
+                        required
+                        class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                        aria-describedby="counter_description"
+                    >{{ article.content or '' }}</textarea>
+
                     <p class="text-sm" id="counter_description">
                         {{ chars_limit }} caractères restants
                     </p>
                 </label>
 
-                <!-- Image  -->
+                <!-- Image -->
                 <div class="block mb-4">
-                    <label for="image">
-                        <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">Image</span>
+                    <label>
+                        <span class="font-bold text-slate-700 after:content-['*'] after:ml-0.5 after:text-red-500">
+                            Image
+                        </span>
                     </label>
+
                     {{ input_file.field(article.image, "image", ".jpg, .jpeg, .png, .avif") }}
+
                     {% if article.image %}
                         <div class="mt-2">
-                            <img src="{{ article.image }}" alt="Image actuelle" class="img-thumbnail" width="150">
+                            <img src="{{ article.image }}" width="150" alt="Image actuelle">
                         </div>
                     {% endif %}
                 </div>
 
-                <!-- Lien YouTube (Optionnel) -->
+                <!-- YouTube -->
                 <label class="block mb-4">
-                    <span class="font-bold text-slate-700">ID de la vidéo YouTube</span>
-                    <input type="text" name="yt_video_id" 
-                           class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm" 
-                           value="{{ article.yt_video_id or '' }}">
+                    <span class="font-bold text-slate-700">
+                        ID ou URL YouTube (optionnel)
+                    </span>
+                    <input
+                        type="text"
+                        name="yt_video_id"
+                        value="{{ article.yt_video_id or '' }}"
+                        class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+                    >
                 </label>
 
                 <!-- Auteur -->
-                <div class="mb-3">
-                    <label for="author" class="form-label">Auteur</label>
-                    <select id="author" name="author" class="form-control" required>
+                <div class="mb-4">
+                    <label for="author" class="font-bold text-slate-700">
+                        Auteur
+                    </label>
+                    <select id="author" name="author" required class="block w-full border border-slate-300 rounded-md py-2 px-3 shadow-sm">
                         <option value="">Sélectionnez un auteur</option>
                         {% for author in list_authors %}
-                            <option value="{{ author._id }}" {% if article.author and author._id == article.author._id %}selected{% endif %}>
+                            <option value="{{ author._id }}"
+                                {% if article.author and author._id == article.author._id %}selected{% endif %}
+                            >
                                 {{ author.firstname ~ ' ' ~ author.lastname }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
 
-            
-                <!-- Slug (affiché mais non modifiable) -->
                 {% if is_edit %}
                     <label class="block mb-4">
-                        <span class="font-bold text-slate-700">Slug (généré automatiquement)</span>
-                        <input type="text" name="slug"
-                               class="block bg-gray-100 w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm sm:text-sm"
-                               value="{{ article.slug or '' }}" readonly>
+                        <span class="font-bold text-slate-700">
+                            Slug (généré automatiquement)
+                        </span>
+                        <input
+                            type="text"
+                            value="{{ article.slug or '' }}"
+                            readonly
+                            class="block bg-gray-100 w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm"
+                        >
                     </label>
                 {% endif %}
 
-                <!-- Statut actif -->
-                <div class="mb-3 form-check">
-                    <input type="checkbox" id="is_active" name="is_active" class="form-check-input"
-                           {% if article.is_active %}checked{% endif %}>
-                    <label for="is_active" class="form-check-label">Publier l'article</label>
+                <div class="mb-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="is_active"
+                            {% if article.is_active %}checked{% endif %}>
+                        Publier l'article
+                    </label>
                 </div>
 
-                <!-- Boutons -->
-                <div class="flex gap-x-3 gap-y-5 flex-col sm:flex-row">
-                    <button class="px-4 py-2 font-semibold text-sm bg-blue-700 hover:bg-blue-950 text-white rounded-2xl shadow-sm inline-flex gap-1 items-center justify-center"
-                            type="submit">
+                <div class="flex gap-3 flex-col sm:flex-row">
+                    <button type="submit"
+                        class="px-4 py-2 font-semibold text-sm bg-blue-700 hover:bg-blue-950 text-white rounded-2xl shadow-sm">
                         Sauvegarder
                     </button>
-                    <button class="px-4 py-2 font-semibold text-sm bg-neutral-100 hover:bg-neutral-200 text-black rounded-2xl shadow-sm"
-                            type="reset">Réinitialiser
+                    <button type="reset"
+                        class="px-4 py-2 font-semibold text-sm bg-neutral-100 hover:bg-neutral-200 rounded-2xl shadow-sm">
+                        Réinitialiser
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Compteur caractères
+    const textarea = document.querySelector('textarea[name="content"]');
+    const counter = document.getElementById("counter_description");
+
+    if (textarea && counter) {
+        const max = parseInt(textarea.dataset.maxlength, 10);
+
+        function updateCounter() {
+            const remaining = max - textarea.value.length;
+            counter.textContent = remaining + " caractères restants";
+
+            if (remaining < 50) {
+                counter.classList.add("text-red-600");
+            } else {
+                counter.classList.remove("text-red-600");
+            }
+        }
+
+        updateCounter();
+        textarea.addEventListener("input", updateCounter);
+    }
+
+    // Validation simple
+    const form = document.querySelector("[data-form]");
+    if (!form) return;
+
+    const isEdit = form.dataset.isEdit === "true";
+
+    form.addEventListener("submit", function (e) {
+
+        const title = form.querySelector('[name="title"]').value.trim();
+        const content = form.querySelector('[name="content"]').value.trim();
+        const author = form.querySelector('[name="author"]').value;
+        const imageInput = form.querySelector('[name="image"]');
+        const yt = form.querySelector('[name="yt_video_id"]').value.trim();
+
+        if (!title || !content || !author) {
+            e.preventDefault();
+            alert("Veuillez remplir tous les champs obligatoires.");
+            return;
+        }
+
+        if (!isEdit && imageInput && !imageInput.value) {
+            e.preventDefault();
+            alert("Veuillez ajouter une image.");
+            return;
+        }
+
+        if (yt) {
+            const isValid = /^[a-zA-Z0-9_-]{6,}$/.test(yt) ||
+                            /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(yt);
+
+            if (!isValid) {
+                e.preventDefault();
+                alert("Lien ou ID YouTube invalide.");
+            }
+        }
+    });
+
+});
+</script>
+
 {% endblock %}
