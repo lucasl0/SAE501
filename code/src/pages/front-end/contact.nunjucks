@@ -5,6 +5,42 @@
 
 {% block title %}Contactez-nous{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/validator@13.11.0/validator.min.js"></script>
+    <style>
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .error-message.visible {
+            display: block;
+        }
+        .input-error {
+            border-color: #dc2626 !important;
+            background-color: #fff5f5;
+        }
+        .form-message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .form-message.success {
+            background-color: #10b981;
+            color: white;
+            display: block;
+        }
+        .form-message.error {
+            background-color: #dc2626;
+            color: white;
+            display: block;
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
     <div class="container mx-auto px-4 max-w-5xl py-12">
 
@@ -24,36 +60,42 @@
         <div class="mb-16">
             <h2 class="text-3xl font-bold mb-8 text-black">Nous contacter en ligne</h2>
 
-            <form action="" method="POST" class="space-y-8">
+            {# Message de retour (succès/erreur) #}
+            <div id="formMessage" class="form-message"></div>
+
+            <form id="contactForm" action="/api/contact" method="POST" class="space-y-8" novalidate>
                 
                 {# Champ Prénom #}
                 <div>
-                    <label for="firstname" class="block font-bold text-black text-lg mb-2">Prénom</label>
+                    <label for="firstname" class="block font-bold text-black text-lg mb-2">Prénom <span class="text-red-500">*</span></label>
                     <input type="text" id="firstname" name="firstname" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <div id="firstnameError" class="error-message"></div>
                 </div>
 
                 {# Champ Nom de famille #}
                 <div>
-                    <label for="lastname" class="block font-bold text-black text-lg mb-2">Nom de famille</label>
+                    <label for="lastname" class="block font-bold text-black text-lg mb-2">Nom de famille <span class="text-red-500">*</span></label>
                     <input type="text" id="lastname" name="lastname" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <div id="lastnameError" class="error-message"></div>
                 </div>
 
                 {# Champ Email #}
                 <div>
-                    <label for="email" class="block font-bold text-black text-lg mb-2">Adresse e-mail</label>
+                    <label for="email" class="block font-bold text-black text-lg mb-2">Adresse e-mail <span class="text-red-500">*</span></label>
                     <input type="email" id="email" name="email" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <div id="emailError" class="error-message"></div>
                 </div>
 
-                {# Champ Message (Hauteur augmentée pour correspondre à la photo) #}
+                {# Champ Message #}
                 <div>
-                    <label for="message" class="block font-bold text-black text-lg mb-2">Message</label>
-                    {# Utilisation de h-80 pour une très grande hauteur fixe comme sur l'image #}
+                    <label for="message" class="block font-bold text-black text-lg mb-2">Message <span class="text-red-500">*</span></label>
                     <textarea id="message" name="message" class="w-full h-80 border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-y transition-shadow"></textarea>
+                    <div id="messageError" class="error-message"></div>
                 </div>
 
                 {# Section "Je suis" #}
                 <div>
-                    <p class="block font-bold text-black text-lg mb-4">Je suis</p>
+                    <p class="block font-bold text-black text-lg mb-4">Je suis <span class="text-red-500">*</span></p>
                     <div class="flex flex-col sm:flex-row gap-6 flex-wrap items-center sm:items-start">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="radio" name="status" value="none" class="w-6 h-6 text-blue-600 border-gray-400 focus:ring-blue-600">
@@ -72,11 +114,12 @@
                             <span class="text-gray-800 text-lg">Autre</span>
                         </label>
                     </div>
+                    <div id="statusError" class="error-message"></div>
                 </div>
 
                 {# Bouton Envoyer #}
                 <div class="pt-6">
-                    <button type="submit" class="w-full bg-[#1F54FF] hover:bg-blue-700 text-white font-bold py-4 rounded shadow-sm text-xl uppercase tracking-wide transition-colors">
+                    <button type="submit" id="submitBtn" class="w-full bg-[#1F54FF] hover:bg-blue-700 text-white font-bold py-4 rounded shadow-sm text-xl uppercase tracking-wide transition-colors">
                         Envoyer
                     </button>
                 </div>
@@ -84,7 +127,309 @@
             </form>
         </div>
 
-       
-
     </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // Récupération des éléments du formulaire
+            const form = document.getElementById('contactForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const formMessage = document.getElementById('formMessage');
+            
+            // Champs à valider
+            const fields = {
+                firstname: document.getElementById('firstname'),
+                lastname: document.getElementById('lastname'),
+                email: document.getElementById('email'),
+                message: document.getElementById('message')
+            };
+            
+            const statusRadios = document.querySelectorAll('input[name="status"]');
+
+            // --- FONCTIONS DE VALIDATION AVEC VALIDATOR.JS ---
+            
+            function validateFirstname(value) {
+                if (!value || value.trim() === '') {
+                    return 'Le prénom est requis';
+                }
+                if (!validator.isLength(value.trim(), {min: 2, max: 50})) {
+                    return 'Le prénom doit contenir entre 2 et 50 caractères';
+                }
+                if (!validator.isAlpha(value.replace(/\s/g, ''), 'fr-FR')) {
+                    return 'Le prénom ne doit contenir que des lettres';
+                }
+                return '';
+            }
+
+            function validateLastname(value) {
+                if (!value || value.trim() === '') {
+                    return 'Le nom est requis';
+                }
+                if (!validator.isLength(value.trim(), {min: 2, max: 50})) {
+                    return 'Le nom doit contenir entre 2 et 50 caractères';
+                }
+                if (!validator.isAlpha(value.replace(/\s/g, ''), 'fr-FR')) {
+                    return 'Le nom ne doit contenir que des lettres';
+                }
+                return '';
+            }
+
+            function validateEmail(value) {
+                if (!value || value.trim() === '') {
+                    return 'L\'email est requis';
+                }
+                if (!validator.isEmail(value.trim())) {
+                    return 'Veuillez entrer une adresse email valide';
+                }
+                return '';
+            }
+
+            function validateMessage(value) {
+                if (!value || value.trim() === '') {
+                    return 'Le message est requis';
+                }
+                if (!validator.isLength(value.trim(), {min: 10, max: 1000})) {
+                    return 'Le message doit contenir entre 10 et 1000 caractères';
+                }
+                return '';
+            }
+
+            function validateStatus() {
+                let isChecked = false;
+                statusRadios.forEach(radio => {
+                    if (radio.checked) isChecked = true;
+                });
+                return isChecked ? '' : 'Veuillez sélectionner une option';
+            }
+
+            // --- AFFICHAGE DES ERREURS ---
+            
+            function showError(fieldId, message) {
+                const input = document.getElementById(fieldId);
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                
+                if (input) {
+                    input.classList.add('input-error');
+                }
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                    errorDiv.classList.add('visible');
+                }
+            }
+
+            function hideError(fieldId) {
+                const input = document.getElementById(fieldId);
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                
+                if (input) {
+                    input.classList.remove('input-error');
+                }
+                if (errorDiv) {
+                    errorDiv.classList.remove('visible');
+                    errorDiv.textContent = '';
+                }
+            }
+
+            function clearAllErrors() {
+                hideError('firstname');
+                hideError('lastname');
+                hideError('email');
+                hideError('message');
+                hideError('status');
+            }
+
+            // --- VALIDATION COMPLÈTE DU FORMULAIRE ---
+            
+            function validateForm() {
+                let isValid = true;
+                
+                // Valider prénom
+                const firstnameError = validateFirstname(fields.firstname.value);
+                if (firstnameError) {
+                    showError('firstname', firstnameError);
+                    isValid = false;
+                } else {
+                    hideError('firstname');
+                }
+                
+                // Valider nom
+                const lastnameError = validateLastname(fields.lastname.value);
+                if (lastnameError) {
+                    showError('lastname', lastnameError);
+                    isValid = false;
+                } else {
+                    hideError('lastname');
+                }
+                
+                // Valider email
+                const emailError = validateEmail(fields.email.value);
+                if (emailError) {
+                    showError('email', emailError);
+                    isValid = false;
+                } else {
+                    hideError('email');
+                }
+                
+                // Valider message
+                const messageError = validateMessage(fields.message.value);
+                if (messageError) {
+                    showError('message', messageError);
+                    isValid = false;
+                } else {
+                    hideError('message');
+                }
+                
+                // Valider statut
+                const statusError = validateStatus();
+                if (statusError) {
+                    showError('status', statusError);
+                    isValid = false;
+                } else {
+                    hideError('status');
+                }
+                
+                return isValid;
+            }
+
+            // --- ENVOI DU FORMULAIRE VERS LE BACK-END ---
+            
+            async function submitForm(e) {
+                e.preventDefault();
+                
+                // Cacher les anciens messages
+                formMessage.className = 'form-message';
+                formMessage.textContent = '';
+                
+                // Valider le formulaire
+                if (!validateForm()) {
+                    // Scroll vers la première erreur
+                    const firstError = document.querySelector('.input-error');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+
+                // Désactiver le bouton pendant l'envoi
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Envoi en cours...';
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                try {
+                    // Récupérer les données du formulaire
+                    const formData = new FormData(form);
+                    
+                    // Convertir en objet pour l'envoi JSON (ou utiliser FormData directement)
+                    const formDataObj = {};
+                    formData.forEach((value, key) => {
+                        formDataObj[key] = value;
+                    });
+
+                    // ENVOI VERS LE BACK-END
+                    // Tu devras remplacer l'URL par celle de ton API
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formDataObj)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        // Succès - Message du back-end ou message par défaut
+                        formMessage.textContent = result.message || '✅ Message envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.';
+                        formMessage.classList.add('success');
+                        
+                        // Réinitialiser le formulaire
+                        form.reset();
+                        clearAllErrors();
+                    } else {
+                        // Erreur - Afficher les erreurs du back-end
+                        if (result.errors) {
+                            // Afficher les erreurs de validation du back-end
+                            Object.keys(result.errors).forEach(field => {
+                                if (fields[field]) {
+                                    showError(field, result.errors[field]);
+                                }
+                            });
+                        }
+                        formMessage.textContent = result.message || '❌ Une erreur est survenue. Veuillez réessayer.';
+                        formMessage.classList.add('error');
+                    }
+                } catch (error) {
+                    console.error('Erreur réseau:', error);
+                    formMessage.textContent = '❌ Erreur de connexion. Veuillez vérifier votre connexion internet.';
+                    formMessage.classList.add('error');
+                } finally {
+                    // Réactiver le bouton
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Envoyer';
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    
+                    // Scroll vers le message
+                    if (formMessage.textContent) {
+                        formMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    
+                    // Cacher le message après 5 secondes (sauf erreurs)
+                    if (formMessage.classList.contains('success')) {
+                        setTimeout(() => {
+                            formMessage.className = 'form-message';
+                            formMessage.textContent = '';
+                        }, 5000);
+                    }
+                }
+            }
+
+            // --- VALIDATION EN TEMPS RÉEL (BLUR) ---
+            
+            fields.firstname.addEventListener('blur', function() {
+                const error = validateFirstname(this.value);
+                if (error) showError('firstname', error);
+                else hideError('firstname');
+            });
+
+            fields.lastname.addEventListener('blur', function() {
+                const error = validateLastname(this.value);
+                if (error) showError('lastname', error);
+                else hideError('lastname');
+            });
+
+            fields.email.addEventListener('blur', function() {
+                const error = validateEmail(this.value);
+                if (error) showError('email', error);
+                else hideError('email');
+            });
+
+            fields.message.addEventListener('blur', function() {
+                const error = validateMessage(this.value);
+                if (error) showError('message', error);
+                else hideError('message');
+            });
+
+            statusRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const error = validateStatus();
+                    if (error) showError('status', error);
+                    else hideError('status');
+                });
+            });
+
+            // Nettoyer les erreurs au focus
+            Object.keys(fields).forEach(key => {
+                fields[key].addEventListener('focus', function() {
+                    hideError(this.id);
+                });
+            });
+
+            // Soumission du formulaire
+            form.addEventListener('submit', submitForm);
+
+        })();
+    </script>
 {% endblock %}
