@@ -145,7 +145,7 @@ app.use(responseTimeMiddleware, function (req, res, next) {
         HOST_IP: hostip,
         current_url,
         base_url,
-        admin_url: `${base_url}/admin${envVars.parsed?.ADMIN_SUFFIX || ""}`,
+        admin_url: `/admin${envVars.parsed?.ADMIN_SUFFIX || ""}`,
         upload_dir: "/uploads/",
         upload_path: path.normalize(`${publicPath}/uploads/`),
         upload_url: `${base_url}/uploads/`,

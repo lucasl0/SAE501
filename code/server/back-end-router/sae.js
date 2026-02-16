@@ -62,7 +62,7 @@ router
     })
     .post(routeName("sae_form"), upload.single("image"), async (req, res) => {
         // Create or update SAE
-        console.log (req.body)
+        console.log (req.body);
         let ressource = null;
         const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
         let listErrors = [];
@@ -89,7 +89,7 @@ router
                 url: `${res.locals.base_url}/api/${ressourceNameInApi.saes}`,
             };
         }
-console.log
+        console.log;
         try {
             const result = await axios(options);
             ressource = result.data;
