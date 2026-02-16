@@ -37,7 +37,7 @@
     {% if paginator.total_pages > 1 %}
         <div class="flex gap-3 items-center flex-col @3xl/main:flex-row z-10">
             <label for="select-page" class="hidden @3xl/main:block">Aller à la page :</label>
-            <select id="select-page" data-paginator="{{ name }}" data-pagination-select>
+            <select id="select-page" data-paginator="{{ name }}">
                 {% for i in range(1, paginator.total_pages + 1) %}
                     <option {{ "selected" if i == paginator.page else "" }} value="{{ i }}">{{ 'Page ' ~ i }}</option>
                 {% endfor %}

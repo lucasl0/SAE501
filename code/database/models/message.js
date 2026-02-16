@@ -1,28 +1,45 @@
 import mongoose, { Schema } from "mongoose";
-import isEmail from "validator/lib/isEmail.js";
+import isEmail from 'validator/lib/isEmail';
 
-const messageSchema = new Schema(
-    {
-        lastname: { type: String, required: true, trim: true },
-        firstname: { type: String, required: true, trim: true },
-        email: {
-            type: String,
-            required: true,
-            trim: true,
-            validate: {
-                validator: isEmail,
-                message: "Veuillez mettre un email valide.",
-            },
-        },
-        content: { type: String, required: true, trim: true, maxlength: 2000 },
-        identity: {
-            type: String,
-            enum: ["non_precise", "etudiant", "autre", "parent"],
-            default: "non_precise",
-        },
-        is_read: { type: Boolean, default: false },
+const messageSchema = new Schema({
+    lastname: {
+        type: String,
+        required: [
+            true,
+            errorRequiredMessage("un titre"),
+        ],
+        trim: true,
     },
-    { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
-);
+    firstname: {
+        type: String,
+        required: [
+            true,
+            errorRequiredMessage("un titre"),
+        ],
+        trim: true,
+    },
+    content: {
+        type: String,
+        maxlength: [
+            200,
+            'Le champ "contenu" ne peut pas dépasser 200 caractères',
+        ],
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: [
+            true,
+            errorRequiredMessage("un email"),
+        ],
+        validate : [isEmail,'Veuillez mettre un email valide.'],
+        trim: true,
+    },
+    identity: {
+        type: String,
+        enum: ['non_precise', 'etudiant', 'autre', 'parent'],
+        default: 'non_precise',
+    },
+});
 
 export default mongoose.model("Message", messageSchema);
