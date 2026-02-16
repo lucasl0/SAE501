@@ -2,7 +2,7 @@ import express from "express";
 import axios from "axios";
 import mongoose from "mongoose";
 import upload from "../uploader.js"; // fixed relative path
-import { ressourceNameInApi } from "./utils.js";  // Correct relative path
+import { ressourceNameInApi } from "./utils.js"; // Correct relative path
 
 const base = "articles";
 const router = express.Router();
@@ -19,7 +19,7 @@ router.get(`/${base}`, async (req, res) => {
         listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
 
-    console.log("Tesy")
+    console.log("Tesy");
 
     res.render("pages/back-end/articles/list.njk", {
         articles,
@@ -47,8 +47,8 @@ router.get(`/${base}/add`, async (req, res) => {
 
 // EDIT ARTICLE FORM
 router.get(`/${base}/:id`, async (req, res, next) => {
-    if(!Number.isInteger(req.params.id)) {
-        return next()
+    if (!Number.isInteger(req.params.id)) {
+        return next();
     }
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
     let article = {};
