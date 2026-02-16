@@ -1,6 +1,5 @@
 import express from "express";
 import axios from "axios";
-import querystring from "querystring";
 
 import routeName from "#server/utils/name-route.middleware.js";
 import parseManifest from "#server/utils/parse-manifest.js";
@@ -9,6 +8,7 @@ import parseManifest from "#server/utils/parse-manifest.js";
 import SAERouter from "./sae.js";
 import articleRouter from "./article.js";
 import authorsRouter from "./author.js";
+import messageRouter from "./message.js";
 
 const router = express.Router();
 
@@ -27,34 +27,33 @@ router.use(async (_req, res, next) => {
 });
 
 router.use(SAERouter);
-router.use(articleRouter);
+router.use("/articles", articleRouter);
 router.use("/auteurs", authorsRouter);
+router.use("/messages", messageRouter);
 
-router.get("/", routeName("admin"), async (req, res) => {
-    const queryParamsSAEs = querystring.stringify({ per_page: 5 });
-    const optionsSAEs = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/saes?${queryParamsSAEs}`,
-    };
+router.get("/", routeName("admin"), async (_req, res) => {
+    let list_saes = { data: [], count: 0 };
+    let list_articles = { data: [], count: 0 };
+    let list_messages = { data: [], count: 0 };
 
-    const listSAEs = await axios(optionsSAEs);
+    try {
+        const [saesRes, articlesRes, messagesRes] = await Promise.all([
+            axios.get(`${res.locals.base_url}/api/saes?per_page=5`),
+            axios.get(`${res.locals.base_url}/api/articles?per_page=5`),
+            axios.get(`${res.locals.base_url}/api/messages?per_page=5`),
+        ]);
 
-    const queryParamsArticles = querystring.stringify({ per_page: 5 });
-    const optionsArticles = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/articles?${queryParamsArticles}`,
-    };
-    const listArticles = await axios(optionsArticles);
+        list_saes = { data: saesRes.data.data, count: saesRes.data.count };
+        list_articles = { data: articlesRes.data.data, count: articlesRes.data.count };
+        list_messages = { data: messagesRes.data.data, count: messagesRes.data.count };
+    } catch (_e) {
+        // si une API plante, on affiche juste des listes vides
+    }
 
     res.render("pages/back-end/index.njk", {
-        list_saes: {
-            data: listSAEs.data.data,
-            count: listSAEs.data.count,
-        },
-        list_articles: {
-            data: listArticles.data.data,
-            count: listArticles.data.count,
-        },
+        list_saes,
+        list_articles,
+        list_messages,
     });
 });
 

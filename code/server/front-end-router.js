@@ -21,18 +21,17 @@ router.use(async (_req, res, next) => {
 });
 
 router.get("/", routeName("homepage"), async (req, res) => {
-    const queryParams = new URLSearchParams(req.query).toString();
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/articles?${queryParams}&is_active=true`,
-    };
-    let result = {};
+    const params = new URLSearchParams({ ...req.query, is_active: "true", per_page: "20" }).toString();
+
+    let listArticles = { data: [], count: 0, total_pages: 1, page: 1, query_params: "" };
+
     try {
-        result = await axios(options);
+        const result = await axios.get(`${res.locals.base_url}/api/articles?${params}`);
+        listArticles = result.data;
     } catch (_error) {}
 
     res.render("pages/front-end/index.njk", {
-        list_articles: result.data,
+        list_articles: listArticles,
     });
 });
 
