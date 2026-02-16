@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
     }
 
     res.render("pages/back-end/articles/list.njk", {
-        list_articles: apiResult, // ✅ comme ton template articles
+        list_articles: apiResult, // comme ton template articles
         list_errors: listErrors,
         query_string_params: req.query,
     });
