@@ -24,31 +24,58 @@
         <div class="mb-16">
             <h2 class="text-3xl font-bold mb-8 text-black">Nous contacter en ligne</h2>
 
-            <form action="" method="POST" class="space-y-8">
+            {# Message de succès (masqué par défaut) #}
+            <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
+                <strong class="font-bold">Message envoyé !</strong>
+                <span class="block sm:inline">Nous vous répondrons dans les plus brefs délais.</span>
+            </div>
+
+            {# Message d'erreur (masqué par défaut) #}
+            <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+                <strong class="font-bold">Erreur !</strong>
+                <span class="block sm:inline">Veuillez remplir tous les champs obligatoires.</span>
+            </div>
+
+            <form id="contactForm" action="" method="POST" class="space-y-8" novalidate>
                 
                 {# Champ Prénom #}
                 <div>
-                    <label for="firstname" class="block font-bold text-black text-lg mb-2">Prénom</label>
-                    <input type="text" id="firstname" name="firstname" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <label for="firstname" class="block font-bold text-black text-lg mb-2">
+                        Prénom <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" id="firstname" name="firstname" required
+                           class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <span class="text-red-600 text-sm hidden" id="firstnameError">Ce champ est requis</span>
                 </div>
 
                 {# Champ Nom de famille #}
                 <div>
-                    <label for="lastname" class="block font-bold text-black text-lg mb-2">Nom de famille</label>
-                    <input type="text" id="lastname" name="lastname" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <label for="lastname" class="block font-bold text-black text-lg mb-2">
+                        Nom de famille <span class="text-red-600">*</span>
+                    </label>
+                    <input type="text" id="lastname" name="lastname" required
+                           class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <span class="text-red-600 text-sm hidden" id="lastnameError">Ce champ est requis</span>
                 </div>
 
                 {# Champ Email #}
                 <div>
-                    <label for="email" class="block font-bold text-black text-lg mb-2">Adresse e-mail</label>
-                    <input type="email" id="email" name="email" class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <label for="email" class="block font-bold text-black text-lg mb-2">
+                        Adresse e-mail <span class="text-red-600">*</span>
+                    </label>
+                    <input type="email" id="email" name="email" required
+                           class="w-full border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-shadow">
+                    <span class="text-red-600 text-sm hidden" id="emailError">Veuillez entrer une adresse e-mail valide</span>
                 </div>
 
-                {# Champ Message (Hauteur augmentée pour correspondre à la photo) #}
+                {# Champ Message #}
                 <div>
-                    <label for="message" class="block font-bold text-black text-lg mb-2">Message</label>
-                    {# Utilisation de h-80 pour une très grande hauteur fixe comme sur l'image #}
-                    <textarea id="message" name="message" class="w-full h-80 border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-y transition-shadow"></textarea>
+                    <label for="message" class="block font-bold text-black text-lg mb-2">
+                        Message <span class="text-red-600">*</span>
+                    </label>
+                    <textarea id="message" name="message" required
+                              class="w-full h-80 border border-gray-400 rounded p-3 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-y transition-shadow"></textarea>
+                    <span class="text-red-600 text-sm hidden" id="messageError">Ce champ est requis</span>
                 </div>
 
                 {# Section "Je suis" #}
@@ -76,7 +103,8 @@
 
                 {# Bouton Envoyer #}
                 <div class="pt-6">
-                    <button type="submit" class="w-full bg-[#1F54FF] hover:bg-blue-700 text-white font-bold py-4 rounded shadow-sm text-xl uppercase tracking-wide transition-colors">
+                    <button type="submit" id="submitBtn"
+                            class="w-full bg-[#1F54FF] hover:bg-blue-700 text-white font-bold py-4 rounded shadow-sm text-xl uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         Envoyer
                     </button>
                 </div>
@@ -84,7 +112,176 @@
             </form>
         </div>
 
-       
-
     </div>
+
+    {# --- SCRIPT JAVASCRIPT INTÉGRÉ --- #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('contactForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Fonction pour valider l'email
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            // Fonction pour afficher les erreurs
+            function showError(fieldId, show = true) {
+                const errorSpan = document.getElementById(fieldId + 'Error');
+                const inputField = document.getElementById(fieldId);
+                
+                if (show) {
+                    errorSpan.classList.remove('hidden');
+                    inputField.classList.add('border-red-500');
+                } else {
+                    errorSpan.classList.add('hidden');
+                    inputField.classList.remove('border-red-500');
+                }
+            }
+
+            // Fonction pour masquer tous les messages
+            function hideMessages() {
+                successMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+            }
+
+            // Validation en temps réel
+            const fields = ['firstname', 'lastname', 'email', 'message'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                
+                field.addEventListener('blur', function() {
+                    if (fieldId === 'email') {
+                        showError(fieldId, !isValidEmail(this.value));
+                    } else {
+                        showError(fieldId, this.value.trim() === '');
+                    }
+                });
+
+                field.addEventListener('input', function() {
+                    if (this.value.trim() !== '') {
+                        if (fieldId === 'email') {
+                            showError(fieldId, !isValidEmail(this.value));
+                        } else {
+                            showError(fieldId, false);
+                        }
+                    }
+                });
+            });
+
+            // Gestion de la soumission du formulaire
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                hideMessages();
+
+                // Récupération des valeurs
+                const firstname = document.getElementById('firstname').value.trim();
+                const lastname = document.getElementById('lastname').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const message = document.getElementById('message').value.trim();
+                const status = document.querySelector('input[name="status"]:checked').value;
+
+                // Validation
+                let isValid = true;
+
+                if (firstname === '') {
+                    showError('firstname', true);
+                    isValid = false;
+                } else {
+                    showError('firstname', false);
+                }
+
+                if (lastname === '') {
+                    showError('lastname', true);
+                    isValid = false;
+                } else {
+                    showError('lastname', false);
+                }
+
+                if (email === '' || !isValidEmail(email)) {
+                    showError('email', true);
+                    isValid = false;
+                } else {
+                    showError('email', false);
+                }
+
+                if (message === '') {
+                    showError('message', true);
+                    isValid = false;
+                } else {
+                    showError('message', false);
+                }
+
+                if (!isValid) {
+                    errorMessage.classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+
+                // Désactiver le bouton pendant l'envoi
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Envoi en cours...';
+
+                // Préparation des données
+                const formData = {
+                    firstname: firstname,
+                    lastname: lastname,
+                    email: email,
+                    message: message,
+                    status: status
+                };
+
+                // Simulation d'envoi (à remplacer par votre vraie logique d'envoi)
+                // Vous pouvez utiliser fetch() pour envoyer à votre backend
+                
+                // EXEMPLE AVEC FETCH (décommenter et adapter l'URL) :
+                /*
+                fetch('/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Envoyer';
+                    
+                    if (data.success) {
+                        successMessage.classList.remove('hidden');
+                        form.reset();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        errorMessage.querySelector('span:last-child').textContent = data.message || 'Une erreur est survenue';
+                        errorMessage.classList.remove('hidden');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Envoyer';
+                    errorMessage.querySelector('span:last-child').textContent = 'Une erreur est survenue lors de l\'envoi';
+                    errorMessage.classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                */
+
+                // SIMULATION (à supprimer en production)
+                setTimeout(() => {
+                    console.log('Données du formulaire:', formData);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Envoyer';
+                    successMessage.classList.remove('hidden');
+                    form.reset();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 1500);
+            });
+        });
+    </script>
 {% endblock %}
