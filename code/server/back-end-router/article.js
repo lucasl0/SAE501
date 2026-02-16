@@ -22,7 +22,7 @@ router.get(`/${base}`, async (req, res) => {
     console.log("Tesy")
 
     res.render("pages/back-end/articles/list.njk", {
-        articles,
+        list_articles: articles, // comme ton template articles
         list_errors: listErrors,
     });
 });

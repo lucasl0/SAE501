@@ -5,6 +5,42 @@
 
 {% block title %}Contactez-nous{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/validator@13.11.0/validator.min.js"></script>
+    <style>
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .error-message.visible {
+            display: block;
+        }
+        .input-error {
+            border-color: #dc2626 !important;
+            background-color: #fff5f5;
+        }
+        .form-message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .form-message.success {
+            background-color: #10b981;
+            color: white;
+            display: block;
+        }
+        .form-message.error {
+            background-color: #dc2626;
+            color: white;
+            display: block;
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
     <div class="container mx-auto px-4 max-w-5xl py-12">
 
@@ -80,7 +116,7 @@
 
                 {# Section "Je suis" #}
                 <div>
-                    <p class="block font-bold text-black text-lg mb-4">Je suis</p>
+                    <p class="block font-bold text-black text-lg mb-4">Je suis <span class="text-red-500">*</span></p>
                     <div class="flex flex-col sm:flex-row gap-6 flex-wrap items-center sm:items-start">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="radio" name="status" value="none" class="w-6 h-6 text-blue-600 border-gray-400 focus:ring-blue-600">
@@ -99,6 +135,7 @@
                             <span class="text-gray-800 text-lg">Autre</span>
                         </label>
                     </div>
+                    <div id="statusError" class="error-message"></div>
                 </div>
 
                 {# Bouton Envoyer #}

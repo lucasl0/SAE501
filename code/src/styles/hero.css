@@ -111,8 +111,15 @@
     &.jaune {
         background-color: #FFE700;
     }
+    &.noir {
+        background-color: #000000;
+    }
+    &.jaune {
+        background-color: #FFE700;
+    }
 
 }
+
 .bulle-icone-bordure {
     position: absolute;
     transform: scale(0.7);
