@@ -19,8 +19,6 @@ router.get(`/${base}`, async (req, res) => {
         listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
 
-    console.log("Tesy", articles)
-
     res.render("pages/back-end/articles/list.njk", {
         list_articles: articles, // comme ton template articles
         list_errors: listErrors,
