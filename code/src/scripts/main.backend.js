@@ -2,6 +2,7 @@ import "/src/styles/base.css";
 import "/src/styles/scroll-shadow.css";
 import "/src/styles/tailwind.css";
 import "/src/styles/back-end/index.css";
+import "./back-end/mobile-pagination.js";
 
 import "./back-end/delete-entry-modal.js";
 import "./back-end/preview-upload.js";
