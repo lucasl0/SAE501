@@ -31,41 +31,30 @@
                     <th class="font-bold px-6 py-3 text-left border-solid border-slate-200 border-b">Message</th>
                     <th class="font-bold px-6 py-3 text-left border-solid border-slate-200 border-b">Statut</th>
                     <th class="font-bold px-6 py-3 text-left border-solid border-slate-200 border-b">Date de création</th>
+                    <th class="px-6 py-3 border-solid border-slate-200 border-b"></th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for message in list_messages.data %}
                     <tr class="hover:bg-neutral-50 even:bg-blue-50">
                         <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">
-                            {{ message.firstname }}
+                            <a href="{{ admin_url }}/messages/{{ message._id }}" class="text-blue-700 hover:text-blue-900">
+                                {{ message.firstName }}
+                            </a>
                         </td>
-
-                        <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">
-                            {{ message.lastname }}
-                        </td>
-
-                        <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">
-                            {{ message.email }}
-                        </td>
-
+                        <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">{{ message.lastName }}</td>
+                        <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">{{ message.email }}</td>
                         <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">
                             <p class="line-clamp-2" title="{{ message.content }}">{{ message.content }}</p>
                         </td>
-
+                        <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">{{ message.identity }}</td>
                         <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">
-                            {{ message.identity }}
-                        </td>
-
-                        <td class="py-4 px-6 bg-transparent border-solid border-slate-200 border-b">
-                            <time datetime="{{ message.created_at }}">{{ message.created_at|date("dd/LL/yyyy à HH:mm") }}</time>
+                            {{ message.created_at | date("DD HH:mm") }}
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" class="text-center bg-transparent border-solid border-slate-200 border-b py-4 px-6">
-                            Pas de messages pour le moment
-                        </td>
+                        <td colspan="6" class="text-center bg-transparent border-solid border-slate-200 border-b py-4 px-6">Pas de messages pour le moment</td>
                     </tr>
                 {% endfor %}
             </tbody>

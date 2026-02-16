@@ -4,36 +4,74 @@ import mongoose from "mongoose";
 import querystring from "querystring";
 
 import Author from "#models/author.js";
+
 import upload, { uploadImage, deleteUpload } from "#server/uploader.js";
 
 const router = express.Router();
+
 const base = "authors";
 
 /**
- * GET /authors
+ * @openapi
+ * /authors:
+ *   get:
+ *     tags:
+ *      - Authors
+ *     summary: Get all authors
+ *     parameters:
+ *      - in: query
+ *        name: page
+ *        schema:
+ *          type: integer
+ *          example: 1
+ *        description: Page's number
+ *      - in: query
+ *        name: per_page
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          example: 7
+ *        description: Number of items per page.
+ *      - in: query
+ *        name: id
+ *        required: false
+ *        schema:
+ *          type: array
+ *          items:
+ *            type: string
+ *            pattern: '([0-9a-f]{24})'
+ *        description: List of authors' _id. **Invalid ids will be skipped.**
+ *     responses:
+ *      200:
+ *         description: Get all authors
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/ListAuthors'
+ *      400:
+ *         description: Something went wrong
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Error'
  */
 router.get(`/${base}`, async (req, res) => {
     const page = Math.max(1, Number(req.query.page) || 1);
-
-    // per_page peut être vide => éviter NaN
-    const perPageRaw = Number(req.query.per_page);
-    const perPage = Number.isFinite(perPageRaw) && perPageRaw > 0 ? perPageRaw : null;
+    const perPage = Number(req.query.per_page);
 
     let listIds = req.query?.id;
     if (req.query.id && !Array.isArray(req.query.id)) {
         listIds = [listIds];
     }
 
-    listIds = (listIds || [])
-        .filter(mongoose.Types.ObjectId.isValid)
-        .map((item) => mongoose.Types.ObjectId.createFromHexString(item));
+    listIds = (listIds || []).filter(mongoose.Types.ObjectId.isValid).map(item => mongoose.Types.ObjectId.createFromHexString(item));
 
     try {
         const listRessources = await Author.aggregate([
             ...(listIds.length ? [{ $match: { _id: { $in: listIds } } }] : []),
             { $sort: { lastname: 1 } },
-            ...(perPage ? [{ $skip: Math.max(page - 1, 0) * perPage }] : []),
-            ...(perPage ? [{ $limit: perPage }] : []),
+            ...(perPage ? [{ $skip: Math.max(page - 1, 0) * Number(perPage) }] : []),
+            ...(perPage ? [{ $limit: Number(perPage) }] : []),
             {
                 $project: {
                     _id: 1,
@@ -47,8 +85,10 @@ router.get(`/${base}`, async (req, res) => {
             },
         ]);
 
-        const count = await Author.countDocuments(listIds.length ? { _id: { $in: listIds } } : {});
-        const total_pages = perPage ? Math.ceil(count / perPage) : 1;
+        const count = await Author.countDocuments(
+            (listIds.length ? { _id: { $in: listIds } } : null)
+        );
+        const total_pages = Math.ceil(count / perPage);
 
         const queryParam = { ...req.query };
         delete queryParam.page;
@@ -65,14 +105,59 @@ router.get(`/${base}`, async (req, res) => {
             errors: [
                 ...Object.values(
                     e?.errors || [{ message: e?.message || "Il y a eu un problème" }]
-                ).map((val) => val.message),
+                ).map(val => val.message),
             ],
         });
     }
 });
 
 /**
- * GET /authors/:id
+ * @openapi
+ * /authors/{id}:
+ *   get:
+ *     tags:
+ *      - Authors
+ *     summary: Get an author
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: author's _id
+ *        required: true
+ *        schema:
+ *          type: string
+ *          pattern: '([0-9a-f]{24})'
+ *      - in: query
+ *        name: page
+ *        schema:
+ *          type: integer
+ *          example: 1
+ *        description: Page's number for author's articles
+ *      - in: query
+ *        name: per_page
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          example: 7
+ *        description: Number of items per page for author's articles. Max 20
+ *     responses:
+ *       200:
+ *         description: Returns a specific author
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Author'
+ *       400:
+ *         description: Something went wrong
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Ressource not found
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Error'
  */
 router.get(`/${base}/:id([a-f0-9]{24})`, async (req, res) => {
     const page = Math.max(1, Number(req.query.page) || 1);
@@ -87,7 +172,9 @@ router.get(`/${base}/:id([a-f0-9]{24})`, async (req, res) => {
                     nb_articles: { $size: "$list_articles" },
                     page: Number(page),
                     total_pages: {
-                        $ceil: { $divide: [{ $size: "$list_articles" }, perPage] },
+                        $ceil: {
+                            $divide: [{ $size: "$list_articles" }, perPage],
+                        },
                     },
                 },
             },
@@ -104,22 +191,22 @@ router.get(`/${base}/:id([a-f0-9]{24})`, async (req, res) => {
                     ],
                 },
             },
-            {
-                $addFields: {
-                    list_articles: {
-                        $map: {
-                            input: "$list_articles",
-                            as: "article",
-                            in: {
-                                $mergeObjects: [
-                                    "$$article",
-                                    { nb_comments: { $size: "$$article.list_comments" } },
-                                ],
-                            },
+            { $addFields: {
+                list_articles: {
+                    $map: {
+                        input: "$list_articles",
+                        as: "article",
+                        in: {
+                            $mergeObjects: [
+                                "$$article",
+                                {
+                                    nb_comments: { $size: "$$article.list_comments" },
+                                },
+                            ],
                         },
                     },
                 },
-            },
+            } },
             { $unset: ["list_articles.list_comments"] },
         ]);
 
@@ -140,15 +227,58 @@ router.get(`/${base}/:id([a-f0-9]{24})`, async (req, res) => {
         return res.status(400).json({
             errors: [
                 ...Object.values(
-                    err?.errors || [{ message: "Quelque chose s'est mal passé" }]
-                ).map((val) => val.message),
+                    err?.errors || [
+                        { message: "Quelque chose s'est mal passé" },
+                    ]
+                ).map(val => val.message),
             ],
         });
     }
 });
 
 /**
- * POST /authors
+ * @openapi
+ * /authors:
+ *   post:
+ *     tags:
+ *      - Authors
+ *     summary: Create an author
+ *     requestBody:
+ *      content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            required: ["lastname", "firstname", "email", "image"]
+ *            properties:
+ *              lastname:
+ *                type: string
+ *                required: true
+ *              firstname:
+ *                type: string
+ *              email:
+ *                type: string
+ *                format: email
+ *              image:
+ *                type: file
+ *              bio:
+ *                type: string
+ *              color:
+ *                type: string
+ *                description: Author's **hexadecimal** color used on his page for the bubble in the front.
+ *                default: "#ff0000"
+ *     responses:
+ *       201:
+ *         description: Creates an author
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Author'
+ *       400:
+ *         description: Something went wrong
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post(`/${base}`, upload.single("image"), async (req, res) => {
     let imagePayload = {};
@@ -174,26 +304,78 @@ router.post(`/${base}`, upload.single("image"), async (req, res) => {
         });
     }
 
-    const ressource = new Author({ ...req.body, ...imagePayload });
+    let ressource = new Author({ ...req.body, ...imagePayload });
 
     await ressource
         .save()
-        .then(() => res.status(201).json(ressource))
+        .then(() => {
+            res.status(201).json(ressource);
+        })
         .catch((err) => {
             res.status(400).json({
                 errors: [
                     ...listErrors,
                     ...deleteUpload(targetPath),
-                    ...Object.values(err?.errors || [{ message: "Quelque chose s'est mal passé" }]).map(
-                        (val) => val.message
-                    ),
+                    ...Object.values(
+                        err?.errors || [
+                            { message: "Quelque chose s'est mal passé" },
+                        ]
+                    ).map(val => val.message),
                 ],
             });
         });
 });
 
 /**
- * PUT /authors/:id
+ * @openapi
+ * /authors/{id}:
+ *   put:
+ *     tags:
+ *      - Authors
+ *     summary: Update an author
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: author's _id
+ *        required: true
+ *        schema:
+ *          type: string
+ *          pattern: '([0-9a-f]{24})'
+ *     requestBody:
+ *      content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            required: ["lastname", "firstname", "email", "image"]
+ *            properties:
+ *              lastname:
+ *                type: string
+ *                required: true
+ *              firstname:
+ *                type: string
+ *              email:
+ *                type: string
+ *              image:
+ *                type: file
+ *              bio:
+ *                type: string
+ *              color:
+ *                type: string
+ *                description: Author's **hexadecimal** color used on his page for the bubble in the front.
+ *                default: "#ff0000"
+ *     responses:
+ *       200:
+ *         description: Updates a specific author
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Author'
+ *       400:
+ *         description: Something went wrong
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Error'
  */
 router.put(`/${base}/:id([a-f0-9]{24})`, upload.single("image"), async (req, res) => {
     let imagePayload = {};
@@ -234,18 +416,26 @@ router.put(`/${base}/:id([a-f0-9]{24})`, upload.single("image"), async (req, res
         .orFail()
         .catch((err) => {
             if (err instanceof mongoose.Error.DocumentNotFoundError) {
-                res.status(404).json({ errors: [`L'auteur "${req.params.id}" n'existe pas`] });
+                res.status(404).json({
+                    errors: [`L'auteur "${req.params.id}" n'existe pas`],
+                });
             } else if (err instanceof mongoose.Error.CastError) {
                 res.status(400).json({
-                    errors: [...listErrors, "Élément non trouvé", ...deleteUpload(targetPath)],
+                    errors: [
+                        ...listErrors,
+                        "Élément non trouvé",
+                        ...deleteUpload(targetPath),
+                    ],
                 });
             } else {
                 res.status(400).json({
                     errors: [
                         ...listErrors,
-                        ...Object.values(err?.errors || [{ message: "Il y a eu un problème" }]).map(
-                            (val) => val.message
-                        ),
+                        ...Object.values(
+                            err?.errors || [
+                                { message: "Il y a eu un problème" },
+                            ]
+                        ).map(val => val.message),
                         ...deleteUpload(targetPath),
                     ],
                     ressource: { ...oldRessource, ...req.body },
@@ -257,7 +447,41 @@ router.put(`/${base}/:id([a-f0-9]{24})`, upload.single("image"), async (req, res
 });
 
 /**
- * DELETE /authors/:id
+ * @openapi
+ * /authors/{id}:
+ *   delete:
+ *     summary: Delete an author
+ *     description: |
+ *      On deletion all articles related to the author deleted lose their author, **they are not deleted**
+ *     tags:
+ *      - Authors
+ *     parameters:
+ *      - name: id
+ *        in: path
+ *        description: author's _id
+ *        required: true
+ *        schema:
+ *          type: string
+ *          pattern: '([0-9a-f]{24})'
+ *     responses:
+ *       200:
+ *         description: Deletes a specific author
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Author'
+ *       400:
+ *         description: Something went wrong
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Ressource not found
+ *         content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Error'
  */
 router.delete(`/${base}/:id([a-f0-9]{24})`, async (req, res) => {
     try {
@@ -269,15 +493,15 @@ router.delete(`/${base}/:id([a-f0-9]{24})`, async (req, res) => {
         }
 
         if (ressource) {
+            req.flash("success", "Element supprimé");
             return res.status(200).json(ressource);
         }
-
         return res.status(404).json({
             errors: [`L'auteur "${req.params.id}" n'existe pas`],
         });
     } catch (_error) {
         return res.status(400).json({
-            errors: ["Quelque chose s'est mal passé, veuillez recommencer"],
+            error: "Quelque chose s'est mal passé, veuillez recommencer",
         });
     }
 });

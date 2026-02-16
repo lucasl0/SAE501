@@ -1,5 +1,5 @@
 import express from "express";
-import messageRouter from "./message.js";
+
 import SAERouter from "./sae.js";
 import ArticleRouter from "./article.js";
 import AuthorRouter from "./author.js";
@@ -11,8 +11,6 @@ router.use(SAERouter);
 router.use(ArticleRouter);
 router.use(AuthorRouter);
 router.use(ArticleCommentRouter);
-router.use(messageRouter);
-
 router.all("*", (req, res) => {
     res.status(404).json({
         errors: [
