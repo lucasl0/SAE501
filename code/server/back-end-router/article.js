@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
         const result = await axios.get(
             `${res.locals.base_url}/api/${ressourceNameInApi.articles}?${queryParams}`
         );
-        apiResult = result.data; // { data: [...], count, total_pages, ... }
+        apiResult = result.data; // { data: [...], count, total_pages... }
     } catch (error) {
         listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
