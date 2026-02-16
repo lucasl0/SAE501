@@ -48,7 +48,8 @@
                 method="post"
                 enctype="multipart/form-data"
                 data-form
-                data-is-edit="{% if is_edit %}true{% else %}false{% endif %}"
+                data-is-edit="{{ 'true' if is_edit else 'false' }}"
+                novalidate
             >
 
                 <!-- Titre -->
@@ -97,7 +98,7 @@
 
                     {% if article.image %}
                         <div class="mt-2">
-                            <img src="{{ article.image }}" width="150" alt="Image actuelle">
+                            <img src="{{ upload_url ~ article.image }}" width="150" alt="Image actuelle">
                         </div>
                     {% endif %}
                 </div>
@@ -113,6 +114,7 @@
                         value="{{ article.yt_video_id or '' }}"
                         class="block bg-white w-full border border-slate-300 rounded-md py-2 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
                     >
+                    <p class="text-sm text-red-700 hidden mt-2" id="yt_error">Lien ou ID YouTube invalide.</p>
                 </label>
 
                 <!-- Auteur -->
@@ -123,10 +125,11 @@
                     <select id="author" name="author" required class="block w-full border border-slate-300 rounded-md py-2 px-3 shadow-sm">
                         <option value="">Sélectionnez un auteur</option>
                         {% for author in list_authors %}
-                            <option value="{{ author._id }}"
-                                {% if article.author and author._id == article.author._id %}selected{% endif %}
+                            <option
+                                value="{{ author._id }}"
+                                {% if article.author and (author._id == article.author._id) %}selected{% endif %}
                             >
-                                {{ author.firstname ~ ' ' ~ author.lastname }}
+                                {{ author.firstname ~ " " ~ author.lastname }}
                             </option>
                         {% endfor %}
                     </select>
@@ -148,19 +151,22 @@
 
                 <div class="mb-4">
                     <label class="flex items-center gap-2">
-                        <input type="checkbox" name="is_active"
-                            {% if article.is_active %}checked{% endif %}>
+                        <input type="checkbox" name="is_active" value="true" {% if article.is_active %}checked{% endif %}>
                         Publier l'article
                     </label>
                 </div>
 
                 <div class="flex gap-3 flex-col sm:flex-row">
-                    <button type="submit"
-                        class="px-4 py-2 font-semibold text-sm bg-blue-700 hover:bg-blue-950 text-white rounded-2xl shadow-sm">
+                    <button
+                        type="submit"
+                        class="px-4 py-2 font-semibold text-sm bg-blue-700 hover:bg-blue-950 text-white rounded-2xl shadow-sm"
+                    >
                         Sauvegarder
                     </button>
-                    <button type="reset"
-                        class="px-4 py-2 font-semibold text-sm bg-neutral-100 hover:bg-neutral-200 rounded-2xl shadow-sm">
+                    <button
+                        type="reset"
+                        class="px-4 py-2 font-semibold text-sm bg-neutral-100 hover:bg-neutral-200 rounded-2xl shadow-sm"
+                    >
                         Réinitialiser
                     </button>
                 </div>
@@ -170,43 +176,62 @@
     </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    // Compteur caractères
+document.addEventListener("DOMContentLoaded", () => {
+    // -------- Compteur caractères --------
     const textarea = document.querySelector('textarea[name="content"]');
     const counter = document.getElementById("counter_description");
 
     if (textarea && counter) {
         const max = parseInt(textarea.dataset.maxlength, 10);
 
-        function updateCounter() {
+        const updateCounter = () => {
             const remaining = max - textarea.value.length;
             counter.textContent = remaining + " caractères restants";
-
-            if (remaining < 50) {
-                counter.classList.add("text-red-600");
-            } else {
-                counter.classList.remove("text-red-600");
-            }
-        }
+            counter.classList.toggle("text-red-600", remaining < 50);
+        };
 
         updateCounter();
         textarea.addEventListener("input", updateCounter);
     }
 
-    // Validation simple
+    // -------- Validation YouTube simple (ID 11 ou URL) --------
+    const getYoutubeId = (val) => {
+        if (!val) return null;
+        const v = val.trim();
+
+        // ID direct
+        if (/^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
+
+        // URL ?v=xxxx
+        const m1 = v.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        if (m1) return m1[1];
+
+        // URL youtu.be/xxxx
+        const m2 = v.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+        if (m2) return m2[1];
+
+        // URL /embed/xxxx
+        const m3 = v.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+        if (m3) return m3[1];
+
+        return null;
+    };
+
+    // -------- Validation formulaire (simple) --------
     const form = document.querySelector("[data-form]");
     if (!form) return;
 
     const isEdit = form.dataset.isEdit === "true";
 
-    form.addEventListener("submit", function (e) {
-
-        const title = form.querySelector('[name="title"]').value.trim();
-        const content = form.querySelector('[name="content"]').value.trim();
-        const author = form.querySelector('[name="author"]').value;
+    form.addEventListener("submit", (e) => {
+        const title = form.querySelector('[name="title"]')?.value.trim();
+        const content = form.querySelector('[name="content"]')?.value.trim();
+        const author = form.querySelector('[name="author"]')?.value;
         const imageInput = form.querySelector('[name="image"]');
-        const yt = form.querySelector('[name="yt_video_id"]').value.trim();
+        const ytInput = form.querySelector('[name="yt_video_id"]');
+        const ytError = document.getElementById("yt_error");
+
+        if (ytError) ytError.classList.add("hidden");
 
         if (!title || !content || !author) {
             e.preventDefault();
@@ -214,23 +239,28 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Image obligatoire seulement en création
         if (!isEdit && imageInput && !imageInput.value) {
             e.preventDefault();
             alert("Veuillez ajouter une image.");
             return;
         }
 
+        // Youtube : si rempli, il faut un ID valide
+        const yt = (ytInput?.value || "").trim();
         if (yt) {
-            const isValid = /^[a-zA-Z0-9_-]{6,}$/.test(yt) ||
-                            /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i.test(yt);
-
-            if (!isValid) {
+            const id = getYoutubeId(yt);
+            if (!id) {
                 e.preventDefault();
-                alert("Lien ou ID YouTube invalide.");
+                if (ytError) ytError.classList.remove("hidden");
+                else alert("Lien ou ID YouTube invalide.");
+                return;
             }
+
+            // optionnel : on remplace la valeur par l'ID propre (comme ça l'API reçoit l'ID)
+            ytInput.value = id;
         }
     });
-
 });
 </script>
 
