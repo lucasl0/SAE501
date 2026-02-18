@@ -40,14 +40,14 @@ const hasEnvFile = fs.existsSync(envFilePath);
 
 const app = express();
 // --- DEBUG temporaire : log des requêtes & réponse finale ---
-app.use((req, res, next) => {
-    console.log(`--> REQ ${req.method} ${req.originalUrl}`);
+//app.use((req, res, next) => {
+//    console.log(`--> REQ ${req.method} ${req.originalUrl}`);
     // quand la réponse est terminée on log le status final
-    res.on("finish", () => {
-      console.log(`<-- RES ${req.method} ${req.originalUrl} -> ${res.statusCode} (headersSent=${res.headersSent})`);
-    });
-    next();
-  });
+//    res.on("finish", () => {
+//      console.log(`<-- RES ${req.method} ${req.originalUrl} -> ${res.statusCode} (headersSent=${res.headersSent})`);
+//    });
+//    next();
+//  });
 const hostip = ip.address();
 
 if (process.env.NODE_ENV === "development") {

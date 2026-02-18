@@ -26,9 +26,9 @@ router.use(async (_req, res, next) => {
     next();
 });
 
-router.use(SAERouter);
-router.use(articleRouter);
-router.use(authorsRouter);
+router.use("/sae", SAERouter);
+router.use("/articles", articleRouter);
+router.use("/auteurs", authorsRouter);
 
 router.get("/", routeName("admin"), async (req, res) => {
     const queryParamsSAEs = querystring.stringify({ per_page: 5 });
