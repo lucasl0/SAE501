@@ -1,14 +1,11 @@
 {% extends "layouts/back-end/base.njk" %}
 {% set active_menu_item = "messages" %}
-{% block title %}Message de {{ message.firstname }}
-    {{ message.lastname }}
-{% endblock %}
+{% block title %}Message de {{ message.firstname }} {{ message.lastname }}{% endblock %}
 {% block main %}
     <div class="bg-white rounded-2xl shadow-md pb-6">
         <header class="mb-1 p-6">
             {% include "components/back-end/breadcrumb.njk" %}
-            <h2 class="text-4xl mb-2">Message de {{ message.firstname }}
-                {{ message.lastname }}</h2>
+            <h2 class="text-4xl mb-2">Message de {{ message.firstname }} {{ message.lastname }}</h2>
             {% if message.createdAt %}
                 <p class="text-sm text-gray-500">Reçu le {{ message.createdAt | date("dd/LL/yyyy à HH:mm") }}</p>
             {% endif %}
@@ -19,16 +16,11 @@
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <dt class="font-medium text-gray-500">Nom complet</dt>
-                        <dd>{{ message.firstname }}
-                            {{ message.lastname }}</dd>
+                        <dd>{{ message.firstname }} {{ message.lastname }}</dd>
                     </div>
                     <div>
                         <dt class="font-medium text-gray-500">Email</dt>
-                        <dd>
-                            <a href="mailto:{{ message.email }}" class="text-blue-700 hover:text-blue-900">
-                                {{ message.email }}
-                            </a>
-                        </dd>
+                        <dd><a href="mailto:{{ message.email }}" class="text-blue-700 hover:text-blue-900">{{ message.email }}</a></dd>
                     </div>
                     <div>
                         <dt class="font-medium text-gray-500">Statut</dt>
@@ -54,13 +46,7 @@
             </div>
             <footer class="mt-6 flex justify-end">
                 <a href="{{ admin_url }}/messages" class="inline-flex items-center gap-2 text-blue-700 hover:text-blue-900">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
                     </svg>
                     Retour à la liste

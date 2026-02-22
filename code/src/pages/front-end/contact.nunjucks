@@ -159,17 +159,14 @@
             const successMessage = document.getElementById('successMessage');
             const errorMessage = document.getElementById('errorMessage');
 
-            // Fonction pour valider l'email
             function isValidEmail(email) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 return emailRegex.test(email);
             }
 
-            // Fonction pour afficher les erreurs
             function showError(fieldId, show = true) {
                 const errorSpan = document.getElementById(fieldId + 'Error');
                 const inputField = document.getElementById(fieldId);
-                
                 if (show) {
                     errorSpan.classList.remove('hidden');
                     inputField.classList.add('border-red-500');
@@ -179,18 +176,15 @@
                 }
             }
 
-            // Fonction pour masquer tous les messages
             function hideMessages() {
                 successMessage.classList.add('hidden');
                 errorMessage.classList.add('hidden');
             }
 
-            // Validation en temps réel
+            // Validation en temps réel (identique)
             const fields = ['firstname', 'lastname', 'email', 'message'];
-            
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
-                
                 field.addEventListener('blur', function() {
                     if (fieldId === 'email') {
                         showError(fieldId, !isValidEmail(this.value));
@@ -198,7 +192,6 @@
                         showError(fieldId, this.value.trim() === '');
                     }
                 });
-
                 field.addEventListener('input', function() {
                     if (this.value.trim() !== '') {
                         if (fieldId === 'email') {
@@ -210,48 +203,30 @@
                 });
             });
 
-            // Gestion de la soumission du formulaire
+            // Gestion de la soumission
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 hideMessages();
 
-                // Récupération des valeurs
                 const firstname = document.getElementById('firstname').value.trim();
                 const lastname = document.getElementById('lastname').value.trim();
                 const email = document.getElementById('email').value.trim();
                 const message = document.getElementById('message').value.trim();
                 const status = document.querySelector('input[name="status"]:checked').value;
 
-                // Validation
                 let isValid = true;
 
-                if (firstname === '') {
-                    showError('firstname', true);
-                    isValid = false;
-                } else {
-                    showError('firstname', false);
-                }
+                if (firstname === '') { showError('firstname', true); isValid = false; }
+                else { showError('firstname', false); }
 
-                if (lastname === '') {
-                    showError('lastname', true);
-                    isValid = false;
-                } else {
-                    showError('lastname', false);
-                }
+                if (lastname === '') { showError('lastname', true); isValid = false; }
+                else { showError('lastname', false); }
 
-                if (email === '' || !isValidEmail(email)) {
-                    showError('email', true);
-                    isValid = false;
-                } else {
-                    showError('email', false);
-                }
+                if (email === '' || !isValidEmail(email)) { showError('email', true); isValid = false; }
+                else { showError('email', false); }
 
-                if (message === '') {
-                    showError('message', true);
-                    isValid = false;
-                } else {
-                    showError('message', false);
-                }
+                if (message === '') { showError('message', true); isValid = false; }
+                else { showError('message', false); }
 
                 if (!isValid) {
                     errorMessage.classList.remove('hidden');
@@ -259,65 +234,48 @@
                     return;
                 }
 
-                // Désactiver le bouton pendant l'envoi
+                // Désactiver le bouton
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Envoi en cours...';
 
                 // Préparation des données
                 const formData = {
-                    firstname: firstname,
-                    lastname: lastname,
-                    email: email,
-                    message: message,
-                    status: status
+                    firstname,
+                    lastname,
+                    email,
+                    message,
+                    status
                 };
 
-                // Simulation d'envoi (à remplacer par votre vraie logique d'envoi)
-                // Vous pouvez utiliser fetch() pour envoyer à votre backend
-                
-                // EXEMPLE AVEC FETCH (décommenter et adapter l'URL) :
-                /*
-                fetch('/api/contact', {
+                // Envoi vers l'API
+                fetch('/api/messages', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 })
                 .then(response => response.json())
                 .then(data => {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Envoyer';
-                    
+
                     if (data.success) {
                         successMessage.classList.remove('hidden');
                         form.reset();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
-                        errorMessage.querySelector('span:last-child').textContent = data.message || 'Une erreur est survenue';
+                        errorMessage.querySelector('span:last-child').textContent = data.errors?.[0] || 'Une erreur est survenue.';
                         errorMessage.classList.remove('hidden');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 })
                 .catch(error => {
-                    console.error('Erreur:', error);
+                    console.error('Erreur réseau :', error);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Envoyer';
-                    errorMessage.querySelector('span:last-child').textContent = 'Une erreur est survenue lors de l\'envoi';
+                    errorMessage.querySelector('span:last-child').textContent = 'Erreur de connexion au serveur.';
                     errorMessage.classList.remove('hidden');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
-                */
-
-                // SIMULATION (à supprimer en production)
-                setTimeout(() => {
-                    console.log('Données du formulaire:', formData);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Envoyer';
-                    successMessage.classList.remove('hidden');
-                    form.reset();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }, 1500);
             });
         });
     </script>

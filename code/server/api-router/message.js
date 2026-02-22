@@ -1,48 +1,79 @@
 import express from "express";
-import axios from "axios";
-import routeName from "#server/utils/name-route.middleware.js";
-import { ressourceNameInApi } from "./utils.js"; // si tu l’utilises déjà
+import Message from "../../database/models/message.js";
 
 const router = express.Router();
-const base = "messages";
 
-// LIST
-router.get(`/${base}`, routeName("admin_messages"), async (req, res) => {
-    const queryParams = new URLSearchParams({ per_page: 10, ...req.query }).toString();
-
-    let result = {};
-    let listErrors = [];
-
+// GET /api/messages – liste paginée (pour l'admin)
+router.get("/", async (req, res) => {
     try {
-        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.messages}?${queryParams}`);
-    } catch (error) {
-        listErrors = error.response?.data?.errors || ["Erreur serveur"];
-    }
+        const page = parseInt(req.query.page) || 1;
+        const per_page = parseInt(req.query.per_page) || 10;
+        const skip = (page - 1) * per_page;
 
-    return res.render("pages/back-end/messages/list.njk", {
-        list_messages: result.data ?? { data: [], count: 0, total_pages: 1, page: 1, query_params: "" },
-        list_errors: listErrors,
-    });
+        const total = await Message.countDocuments();
+        const messages = await Message.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(per_page);
+
+        res.json({
+            data: messages,
+            count: total,
+            page,
+            total_pages: Math.ceil(total / per_page),
+            per_page,
+        });
+    } catch (error) {
+        res.status(500).json({ errors: ["Erreur serveur"] });
+    }
 });
 
-// DETAIL
-router.get(`/${base}/:id`, routeName("admin_message_detail"), async (req, res) => {
-    let result = {};
-    let errors = [];
-
+// GET /api/messages/:id – détail d’un message
+router.get("/:id", async (req, res) => {
     try {
-        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.messages}/${req.params.id}`);
+        const message = await Message.findById(req.params.id);
+        if (!message) {
+            return res.status(404).json({ errors: ["Message introuvable"] });
+        }
+        res.json(message);
     } catch (error) {
-        errors = error.response?.data?.errors || ["Message introuvable"];
+        res.status(500).json({ errors: ["Erreur serveur"] });
     }
+});
 
-    if (errors.length) {
-        return res.status(404).render("pages/errors/404.njk"); // adapte à ton projet
+// POST /api/messages – réception du formulaire de contact
+router.post("/", async (req, res) => {
+    try {
+        const { firstname, lastname, email, message, status } = req.body;
+
+        // Validation simple
+        if (!firstname || !lastname || !email || !message) {
+            return res.status(400).json({
+                errors: ["Tous les champs obligatoires doivent être remplis."],
+            });
+        }
+
+        // Mapper le statut
+        let identity = "non_precise";
+        if (status === "student") identity = "etudiant";
+        else if (status === "parent") identity = "parent";
+        else if (status === "other") identity = "autre";
+
+        const newMessage = new Message({
+            firstname,
+            lastname,
+            email,
+            content: message,
+            identity,
+        });
+
+        await newMessage.save();
+
+        res.status(201).json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ errors: ["Erreur serveur"] });
     }
-
-    return res.render("pages/back-end/messages/detail.njk", {
-        message: result.data,
-    });
 });
 
 export default router;

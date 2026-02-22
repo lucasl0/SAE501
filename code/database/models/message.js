@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import isEmail from "validator/lib/isEmail";
+import isEmail from "validator/lib/isEmail.js";
 
 const messageSchema = new Schema(
     {
@@ -16,14 +16,15 @@ const messageSchema = new Schema(
         content: {
             type: String,
             required: [true, 'Le champ "message" est requis'],
-            maxlength: [200, 'Le champ "contenu" ne peut pas dépasser 200 caractères'],
+            maxlength: [2000, "Le message ne peut pas dépasser 2000 caractères"], // adaptez
             trim: true,
         },
         email: {
             type: String,
             required: [true, 'Le champ "email" est requis'],
-            validate: [isEmail, "Veuillez mettre un email valide."],
+            validate: [isEmail, "Veuillez fournir un email valide."],
             trim: true,
+            lowercase: true,
         },
         identity: {
             type: String,
@@ -32,7 +33,7 @@ const messageSchema = new Schema(
         },
     },
     {
-        timestamps: true, // => createdAt / updatedAt
+        timestamps: true, // ajoute createdAt et updatedAt
     }
 );
 
