@@ -1,76 +1,68 @@
 {% extends "layouts/back-end/base.njk" %}
 {% set active_menu_item = "auteurs" %}
-
 {% import "components/back-end/pagination.njk" as pagination with context %}
 {% import "components/back-end/list-actions.njk" as list_actions %}
-
 {% block main %}
-<div class="bg-white rounded-2xl shadow-md pb-6">
-
-    <header class="mb-1 p-6 flex justify-between items-center">
-        <div>
-            {% include "components/back-end/breadcrumb.njk" %}
-            <h2 class="text-4xl">
-                Liste des auteurs
-            </h2>
-            <p class="text-sm">{{ list_authors.count }} éléments au total</p>
-        </div>
-
-        <a href="{{ admin_url ~ '/auteurs/add' }}"
-           class="text-white bg-blue-700 hover:bg-blue-900 rounded-2xl py-2 px-4">
-            Ajouter un auteur
-        </a>
-    </header>
-
-    <div class="px-6">
-        {% for item in list_errors %}
-            <p class="rounded-lg p-3 bg-red-100 text-red-800 mb-3">
-                {{ item }}
-            </p>
-        {% endfor %}
-    </div>
-
-    <table class="w-full border-collapse">
-        <thead>
-            <tr>
-                <th class="px-6 py-3 text-left">Nom</th>
-                <th class="px-6 py-3 text-left">Email</th>
-                <th class="px-6 py-3 text-left">Couleur</th>
-                <th class="px-6 py-3"></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in list_authors.data %}
-                <tr class="hover:bg-neutral-50 even:bg-blue-50">
-                    <td class="px-6 py-4">
-                        {{ item.firstname }} {{ item.lastname }}
-                    </td>
-                    <td class="px-6 py-4">
-                        {{ item.email }}
-                    </td>
-                    <td class="px-6 py-4">
-                        <span style="color: {{ item.color }}">
-                            {{ item.color }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        {{ list_actions.edit(admin_url ~ '/auteurs/' ~ item._id) }}
-                        {{ list_actions.delete(base_url ~ '/api/auteurs/' ~ item._id, item.firstname ~ ' ' ~ item.lastname) }}
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="4" class="text-center py-4">
-                        Aucun auteur pour le moment
-                    </td>
-                </tr>
+    <div class="bg-white rounded-2xl shadow-md pb-6">
+        <header class="mb-1 p-6 flex justify-between items-center">
+            <div>
+                {% include "components/back-end/breadcrumb.njk" %}
+                <h2 class="text-4xl">
+                    Liste des auteurs
+                </h2>
+                <p class="text-sm">{{ list_authors.count }} éléments au total</p>
+            </div>
+            <a href="{{ admin_url ~ '/auteurs/add' }}" class="text-white bg-blue-700 hover:bg-blue-900 rounded-2xl py-2 px-4">
+                Ajouter un auteur
+            </a>
+        </header>
+        <div class="px-6">
+            {% for item in list_errors %}
+                <p class="rounded-lg p-3 bg-red-100 text-red-800 mb-3">
+                    {{ item }}
+                </p>
             {% endfor %}
-        </tbody>
-    </table>
-
-    <footer class="flex justify-between px-4 items-center">
-        {{ pagination.item(list_authors) }}
-    </footer>
-
-</div>
+        </div>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 text-left">Nom</th>
+                    <th class="px-6 py-3 text-left">Email</th>
+                    <th class="px-6 py-3 text-left">Couleur</th>
+                    <th class="px-6 py-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in list_authors.data %}
+                    <tr class="hover:bg-neutral-50 even:bg-blue-50">
+                        <td class="px-6 py-4">
+                            {{ item.firstname }}
+                            {{ item.lastname }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ item.email }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span style="color: {{ item.color }}">
+                                {{ item.color }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ list_actions.edit(admin_url ~ '/auteurs/' ~ item._id) }}
+                            {{ list_actions.delete(base_url ~ '/api/auteurs/' ~ item._id, item.firstname ~ ' ' ~ item.lastname) }}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4">
+                            Aucun auteur pour le moment
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <footer class="flex justify-between px-4 items-center">
+            {{ pagination.item(list_authors) }}
+        </footer>
+    </div>
 {% endblock %}

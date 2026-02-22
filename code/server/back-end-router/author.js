@@ -2,7 +2,7 @@ import express from "express";
 import axios from "axios";
 import mongoose from "mongoose";
 import upload from "#server/uploader.js";
-import { ressourceNameInApi } from "./utils.js";  // Correct relative path
+import { ressourceNameInApi } from "./utils.js"; // Correct relative path
 
 const base = "auteurs";
 const router = express.Router();
@@ -20,7 +20,13 @@ router.get("/", async (req, res) => {
     }
 
     res.render("pages/back-end/auteurs/list.njk", {
-        list_authors: result.data || [],
+        list_authors: result.data ?? {
+            data: [],
+            count: 0,
+            total_pages: 1,
+            page: 1,
+            query_params: "",
+        },
         list_errors: listErrors,
     });
 });
