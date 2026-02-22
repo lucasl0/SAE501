@@ -49,7 +49,7 @@
                         </td>
                         <td class="px-6 py-4">
                             {{ list_actions.edit(admin_url ~ '/auteurs/' ~ item._id) }}
-                            {{ list_actions.delete(base_url ~ '/api/auteurs/' ~ item._id, item.firstname ~ ' ' ~ item.lastname) }}
+                            {{ list_actions.delete(base_url ~ '/api/authors/' ~ item._id, item.firstname ~ ' ' ~ item.lastname) }}
                         </td>
                     </tr>
                 {% else %}

@@ -82,17 +82,6 @@ if (process.env.NODE_ENV === "production") {
     publicPath = path.join(path.resolve(), "dist");
 }
 
-mongoServer()
-    .then((res) => {
-        console.log("---------------------------");
-        console.log(`• \x1b[36m${res}\x1b[0m`);
-        console.log("---------------------------");
-    })
-    .catch((err) => {
-        console.log("\x1b[31m---------------------------");
-        console.log(`• \x1b[31m${err}\x1b[0m`);
-        console.log("\x1b[31m---------------------------");
-    });
 
 app.use(
     express.json({
@@ -458,19 +447,39 @@ app.use((req, res) => {
     });
   });
 
-app.listen(port, listDomains, () => {
-    console.log("---------------------------");
-    console.log(
-        "Express server running at (ctrl/cmd + click to open in your browser):"
-    );
-    ["localhost", ...listDomains]
-        .filter(Boolean)
-        .filter((item) => item !== "::")
-        .forEach((item) => {
-            let prefix = "Network";
-            if (item.includes("localhost")) {
-                prefix = "Local";
-            }
-            console.log(`\x1b[35m➜\x1b[0m  ${prefix}: \x1b[35mhttp://${item}:${port}/\x1b[0m`);
-        });
-});
+const startServer = () => {
+    app.listen(port, listDomains, () => {
+        console.log("---------------------------");
+        console.log(
+            "Express server running at (ctrl/cmd + click to open in your browser):"
+        );
+        ["localhost", ...listDomains]
+            .filter(Boolean)
+            .filter((item) => item !== "::")
+            .forEach((item) => {
+                let prefix = "Network";
+                if (item.includes("localhost")) {
+                    prefix = "Local";
+                }
+                console.log(
+                    `\x1b[35m➜\x1b[0m  ${prefix}: \x1b[35mhttp://${item}:${port}/\x1b[0m`
+                );
+            });
+    });
+};
+
+(async () => {
+    try {
+        const res = await mongoServer();
+        console.log("---------------------------");
+        console.log(`• \x1b[36m${res}\x1b[0m`);
+        console.log("---------------------------");
+
+        startServer();
+    } catch (err) {
+        console.log("\x1b[31m---------------------------");
+        console.log(`• \x1b[31m${err}\x1b[0m`);
+        console.log("\x1b[31m---------------------------");
+        process.exit(1);
+    }
+})();
