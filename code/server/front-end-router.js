@@ -66,7 +66,7 @@ router.get("/articles/:slug", routeName("article"), async (req, res) => {
             .render("pages/404.njk", { title: "404 - Page introuvable" });
     }
 
-    return res.render("pages/front-end/article.nunjucks", {
+    return res.render("pages/front-end/article.njk", {
         article,
     });
 });

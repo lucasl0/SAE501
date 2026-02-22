@@ -1,0 +1,51 @@
+{% extends "layouts/front-end/base.njk" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block bubble_color %}rose{% endblock %}
+
+{% set authorName = "La rédaction" %}
+{% if article.author and article.author.firstname %}
+    {% set authorName = article.author.firstname ~ " " ~ article.author.lastname %}
+{% endif %}
+
+{% block main %}
+    <section class="max-w-4xl mx-auto px-4 py-10">
+        <a href="/" class="text-gray-600 hover:text-blue-700">← Retour</a>
+
+        <h1 class="text-4xl font-bold mt-4">{{ article.title }}</h1>
+
+        <p class="italic text-gray-600 mt-2">
+            Par {{ authorName }}
+        </p>
+
+        {% if article.image %}
+            <div class="rounded-lg overflow-hidden mt-6">
+                <img class="w-full h-auto object-cover" src="/uploads/{{ article.image }}" alt="">
+            </div>
+        {% endif %}
+
+        {% if article.abstract %}
+            <p class="text-xl font-semibold mt-6">
+                {{ article.abstract }}
+            </p>
+        {% endif %}
+
+        <div class="mt-6 leading-relaxed">
+            {{ article.content | safe }}
+        </div>
+
+        {% if article.yt_video_id %}
+            <div class="mt-10">
+                <h2 class="text-2xl font-bold mb-3">Vidéo</h2>
+                <div class="w-full aspect-video rounded-lg overflow-hidden">
+                    <iframe
+                        class="w-full h-full"
+                        src="https://www.youtube-nocookie.com/embed/{{ article.yt_video_id }}"
+                        title="Vidéo"
+                        frameborder="0"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}
