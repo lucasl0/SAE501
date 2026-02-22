@@ -1,4 +1,5 @@
 {% extends "layouts/front-end/base.njk" %}
+{% block title %}Article - {{ article.title }}{% endblock %}
 
 {# --- COULEUR DE LA BULLE --- #}
 {% block bubble_color %}blue{% endblock %}
