@@ -26,7 +26,7 @@ router.use(async (_req, res, next) => {
     next();
 });
 
-router.use("/sae", SAERouter);
+router.use("/", SAERouter);
 router.use("/articles", articleRouter);
 router.use("/auteurs", authorsRouter);
 
