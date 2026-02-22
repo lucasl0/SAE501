@@ -14,7 +14,9 @@ router.get("/", async (req, res) => {
     let listErrors = [];
 
     try {
-        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}?${queryParams}`);
+        result = await axios.get(
+            `${res.locals.base_url}/api/${ressourceNameInApi.authors}?${queryParams}`
+        );
     } catch (error) {
         listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
@@ -32,7 +34,7 @@ router.get("/", async (req, res) => {
 });
 
 // ADD AUTHOR FORM
-router.get("/add", (req, res) => {
+router.get("/add", (_req, res) => {
     res.render("pages/back-end/auteurs/form.njk", {
         author: {},
         list_errors: [],
@@ -48,7 +50,9 @@ router.get("/:id", async (req, res) => {
 
     if (isEdit) {
         try {
-            const result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`);
+            const result = await axios.get(
+                `${res.locals.base_url}/api/${ressourceNameInApi.authors}/${req.params.id}`
+            );
             author = result.data;
         } catch (e) {
             listErrors = e.response?.data?.errors || [];
@@ -65,10 +69,12 @@ router.get("/:id", async (req, res) => {
 // CREATE OR UPDATE AUTHOR
 router.post(["/add", "/:id"], upload.single("image"), async (req, res) => {
     const isEdit = mongoose.Types.ObjectId.isValid(req.params.id);
-    let options = {
+
+    const options = {
         headers: { "Content-Type": "multipart/form-data" },
         data: { ...req.body, file: req.file },
     };
+
     let ressource = {};
     let listErrors = [];
 
@@ -87,13 +93,15 @@ router.post(["/add", "/:id"], upload.single("image"), async (req, res) => {
         listErrors = e.response?.data?.errors || [];
         ressource = e.response?.data?.ressource || {};
     } finally {
-        if (listErrors.length || isEdit) {
+        // ✅ Si erreurs : on reste sur le formulaire
+        if (listErrors.length) {
             res.render("pages/back-end/auteurs/form.njk", {
                 author: ressource,
                 list_errors: listErrors,
                 is_edit: isEdit,
             });
         } else {
+            // ✅ Succès (add ou edit) : retour à la liste
             res.redirect(`${res.locals.admin_url}/${base}`);
         }
     }
