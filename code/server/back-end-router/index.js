@@ -9,6 +9,7 @@ import parseManifest from "#server/utils/parse-manifest.js";
 import SAERouter from "./sae.js";
 import articleRouter from "./article.js";
 import authorsRouter from "./author.js";
+import messagesRouter from "./message.js"; // ✅ AJOUT
 
 const router = express.Router();
 
@@ -29,22 +30,39 @@ router.use(async (_req, res, next) => {
 router.use("/", SAERouter);
 router.use("/articles", articleRouter);
 router.use("/auteurs", authorsRouter);
+router.use("/messages", messagesRouter); // ✅ AJOUT
 
 router.get("/", routeName("admin"), async (req, res) => {
+    // SAEs
     const queryParamsSAEs = querystring.stringify({ per_page: 5 });
     const optionsSAEs = {
         method: "GET",
         url: `${res.locals.base_url}/api/saes?${queryParamsSAEs}`,
     };
-
     const listSAEs = await axios(optionsSAEs);
 
+    // Articles
     const queryParamsArticles = querystring.stringify({ per_page: 5 });
     const optionsArticles = {
         method: "GET",
         url: `${res.locals.base_url}/api/articles?${queryParamsArticles}`,
     };
     const listArticles = await axios(optionsArticles);
+
+    // ✅ Messages
+    const queryParamsMessages = querystring.stringify({ per_page: 5 });
+    const optionsMessages = {
+        method: "GET",
+        url: `${res.locals.base_url}/api/messages?${queryParamsMessages}`,
+    };
+
+    let listMessages = { data: { data: [], count: 0 } };
+
+    try {
+        listMessages = await axios(optionsMessages);
+    } catch (error) {
+        console.error("Erreur récupération messages:", error.response?.data || error.message);
+    }
 
     res.render("pages/back-end/index.njk", {
         list_saes: {
@@ -54,6 +72,11 @@ router.get("/", routeName("admin"), async (req, res) => {
         list_articles: {
             data: listArticles.data.data,
             count: listArticles.data.count,
+        },
+        // ✅ AJOUT
+        list_messages: {
+            data: listMessages.data.data,
+            count: listMessages.data.count,
         },
     });
 });

@@ -1,38 +1,48 @@
 import express from "express";
-import mongoose from "mongoose";
-
+import axios from "axios";
 import routeName from "#server/utils/name-route.middleware.js";
-import Message from "#models/message.js";
+import { ressourceNameInApi } from "./utils.js"; // si tu l’utilises déjà
 
 const router = express.Router();
-
 const base = "messages";
 
-router.post(`/${base}`, routeName("message_api"), upload.single("image"), async (req, res) => {
+// LIST
+router.get(`/${base}`, routeName("admin_messages"), async (req, res) => {
+    const queryParams = new URLSearchParams({ per_page: 10, ...req.query }).toString();
+
+    let result = {};
     let listErrors = [];
 
-    const uploadedImage = req.body.file || req.file;
-
-    if (listErrors.length) {
-        return res.status(400).json({
-            errors: listErrors,
-            ressource: req.body,
-        });
-    }
-
-    const ressource = new Message(req.body);
     try {
-        await ressource.save();
-        res.status(201).json(ressourceComputed);
+        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.messages}?${queryParams}`);
     } catch (error) {
-        res.status(400).json({
-            errors: [
-                ...listErrors,
-                ...deleteUpload(targetPath),
-                ...Object.values(
-                    error?.errors || [{ message: "Il y a eu un problème" }]
-                ).map(val => val.message),
-            ],
-        });
+        listErrors = error.response?.data?.errors || ["Erreur serveur"];
     }
+
+    return res.render("pages/back-end/messages/list.njk", {
+        list_messages: result.data ?? { data: [], count: 0, total_pages: 1, page: 1, query_params: "" },
+        list_errors: listErrors,
+    });
 });
+
+// DETAIL
+router.get(`/${base}/:id`, routeName("admin_message_detail"), async (req, res) => {
+    let result = {};
+    let errors = [];
+
+    try {
+        result = await axios.get(`${res.locals.base_url}/api/${ressourceNameInApi.messages}/${req.params.id}`);
+    } catch (error) {
+        errors = error.response?.data?.errors || ["Message introuvable"];
+    }
+
+    if (errors.length) {
+        return res.status(404).render("pages/errors/404.njk"); // adapte à ton projet
+    }
+
+    return res.render("pages/back-end/messages/detail.njk", {
+        message: result.data,
+    });
+});
+
+export default router;
