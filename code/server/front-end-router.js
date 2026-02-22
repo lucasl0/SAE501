@@ -20,89 +20,108 @@ router.use(async (_req, res, next) => {
     next();
 });
 
+/**
+ * HOME -> Liste des articles publiés
+ */
 router.get("/", routeName("homepage"), async (req, res) => {
-    const queryParams = new URLSearchParams(req.query).toString();
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/articles?${queryParams}&is_active=true`,
-    };
-    let result = {};
-    try {
-        result = await axios(options);
-    } catch (_error) {}
+    let data = [];
 
-    res.render("pages/front-end/index.njk", {
-        list_articles: result.data,
+    try {
+        const response = await axios.get(`${res.locals.base_url}/api/articles`, {
+            params: {
+                ...req.query,
+                is_active: "true",
+                sorting: "desc",
+            },
+        });
+
+        data = response.data?.data || [];
+    } catch (_error) {
+        data = [];
+    }
+
+    return res.render("pages/front-end/index.njk", {
+        list_articles: data, // ✅ tableau
+    });
+});
+
+/**
+ * ARTICLE -> Détail par slug
+ */
+router.get("/articles/:slug", routeName("article"), async (req, res) => {
+    let article = null;
+
+    try {
+        const response = await axios.get(
+            `${res.locals.base_url}/api/articles/${req.params.slug}`
+        );
+        article = response.data;
+    } catch (_error) {
+        article = null;
+    }
+
+    if (!article) {
+        return res
+            .status(404)
+            .render("pages/404.njk", { title: "404 - Page introuvable" });
+    }
+
+    return res.render("pages/front-end/article.nunjucks", {
+        article,
     });
 });
 
 // "(.html)?" makes ".html" optional in the url
 router.get("/a-propos(.html)?", routeName("about"), async (_req, res) => {
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/saes?per_page=9`,
-    };
-
     let result = {};
     try {
-        result = await axios(options);
+        result = await axios.get(`${res.locals.base_url}/api/saes`, {
+            params: { per_page: 9 },
+        });
     } catch (_error) {}
 
-    res.render("pages/front-end/about.njk", {
+    return res.render("pages/front-end/about.njk", {
         list_saes: result.data,
     });
 });
 
 router.get("/lieux(.html)?", routeName("lieux"), async (_req, res) => {
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/saes?per_page=9`,
-    };
-
     let result = {};
     try {
-        result = await axios(options);
+        result = await axios.get(`${res.locals.base_url}/api/saes`, {
+            params: { per_page: 9 },
+        });
     } catch (_error) {}
 
-    res.render("pages/front-end/lieux.nunjucks", {
+    return res.render("pages/front-end/lieux.nunjucks", {
         list_saes: result.data,
     });
 });
 
-router.get("/sur-les-medias.(html)?", routeName("sur-les-medias"), async (_req, res) => {
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/saes?per_page=9`,
-    };
-
+router.get("/sur-les-medias(.html)?", routeName("sur-les-medias"), async (_req, res) => {
     let result = {};
     try {
-        result = await axios(options);
+        result = await axios.get(`${res.locals.base_url}/api/saes`, {
+            params: { per_page: 9 },
+        });
     } catch (_error) {}
 
-    res.render("pages/front-end/sur-les-medias.nunjucks", {
+    return res.render("pages/front-end/sur-les-medias.nunjucks", {
         list_saes: result.data,
     });
 });
 
-router.get("/contact.(html)?", routeName("contact"), async (_req, res) => {
-    const options = {
-        method: "GET",
-        url: `${res.locals.base_url}/api/saes?per_page=9`,
-    };
-
+router.get("/contact(.html)?", routeName("contact"), async (_req, res) => {
     let result = {};
     try {
-        result = await axios(options);
+        result = await axios.get(`${res.locals.base_url}/api/saes`, {
+            params: { per_page: 9 },
+        });
     } catch (_error) {}
 
-    res.render("pages/front-end/contact.nunjucks", {
+    return res.render("pages/front-end/contact.nunjucks", {
         list_saes: result.data,
     });
 });
-
-
-
-
 
 export default router;
